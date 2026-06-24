@@ -15,15 +15,13 @@
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 
+    <!-- OneSignal SDK Initialization -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
           appId: "49ffd368-20ab-44e8-94b0-223ec44a8a1d",
-          notifyButton: {
-            enable: true, // Akan wujudkan ikon loceng terapung di web jika perlu
-          },
         });
       });
     </script>
@@ -85,9 +83,6 @@
         .dark input[readonly] { background-color: #1e293b; color: #94a3b8; }
 
         /* ===== FONTAWESOME FALLBACK ===== */
-        /* Jika CDN FontAwesome gagal load (offline/network blocked), .fa-fallback
-           ditambah pada <html> dan setiap <i class="fa-..."> akan papar emoji
-           gantian supaya button TIDAK nampak kosong/hilang icon. */
         .fa-fallback i.fa-solid, .fa-fallback i.fa-regular { font-family: inherit !important; font-style: normal; }
         .fa-fallback i.fa-solid::before, .fa-fallback i.fa-regular::before { content: '•'; }
         .fa-fallback i.fa-bolt::before { content: '⚡'; }

@@ -368,7 +368,7 @@
     // ==========================================
     
     // MASUKKAN WEB APP URL APPS SCRIPT ANDA DI BAWAH
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNCMvga9CsIYwyJxDb5dpuOa7ybCLvlvE7FyhW__WKExzwcR9hSMDefdN3sw_YRAyqaA/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9LfJCy0F1d4p6EJxzah5zw4s6KAQJBkYk0qzsmsmRxtz6bXBatypXcbyZMDN0Gid9Nw/exec";
     
     // MASUKKAN ONESIGNAL APP ID ANDA DI BAWAH
     const ONESIGNAL_APP_ID = "cf955f91-6073-449f-a745-181c7a7dc4f9";
@@ -1695,10 +1695,8 @@
             await OneSignal.init({
                 appId: ONESIGNAL_APP_ID,
                 safari_web_id: "web.onesignal.auto.34f3144b-3497-4c5c-a43c-a5d9eb9bdd56", // Menggunakan safari web id yang anda berikan
-                notifyButton: {
-                    enable: true, // Butang kecil "Loceng" OneSignal di penjuru bawah
-                },
                 allowLocalhostAsSecureOrigin: true // Membenarkan test dari 127.0.0.1
+                // Ciri notifyButton (loceng merah) telah dibuang di sini supaya tidak mengganggu navigasi bawah
             });
             
             // Listeners

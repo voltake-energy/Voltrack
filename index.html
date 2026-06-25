@@ -15,16 +15,8 @@
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 
-    <!-- OneSignal SDK Initialization -->
+    <!-- === TAMBAH ONESIGNAL SDK === -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "49ffd368-20ab-44e8-94b0-223ec44a8a1d",
-        });
-      });
-    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -112,20 +104,28 @@
         .fa-fallback i.fa-file-check::before { content: '📋'; }
         .fa-fallback i.fa-download::before { content: '⬇️'; }
         .fa-fallback i.fa-mobile-screen-button::before { content: '📱'; }
+        .fa-fallback i.fa-ellipsis-vertical::before { content: '⋮'; }
+        .fa-fallback i.fa-volume-high::before { content: '🔊'; }
+        .fa-fallback i.fa-volume-xmark::before { content: '🔇'; }
+        .fa-fallback i.fa-display::before { content: '🖥️'; }
+        .fa-fallback i.fa-mobile-screen::before { content: '📱'; }
+        .fa-fallback i.fa-desktop::before { content: '🖥️'; }
+        .fa-fallback i.fa-square-up-right::before { content: '⬆️'; }
+        .fa-fallback i.fa-gear::before { content: '⚙️'; }
 
         /* Notification panel */
-        #notif-panel {
+        #notif-panel, #settings-panel {
             transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease;
         }
-        #notif-panel.hidden { display: none; }
+        #notif-panel.hidden, #settings-panel.hidden { display: none; }
 
         /* Toast container */
         #toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
         .toast { pointer-events: all; min-width: 280px; max-width: 360px; }
 
         /* Notif badge */
-        .notif-badge { 
-            position: absolute; top: -4px; right: -4px; 
+        .notif-badge {
+            position: absolute; top: -4px; right: -4px;
             min-width: 18px; height: 18px; padding: 0 4px;
             background: #ef4444; color: white; font-size: 10px; font-weight: 700;
             border-radius: 9px; display: flex; align-items: center; justify-content: center;
@@ -147,64 +147,48 @@
         .notif-warning { border-left: 3px solid #f59e0b; }
         .notif-info { border-left: 3px solid #3b82f6; }
         .notif-success { border-left: 3px solid #10b981; }
+
+        /* ===== FORCED VIEW MODE (Desktop-First Design toggle) ===== */
+        html.force-desktop .force-desktop-show { display: flex !important; }
+        html.force-desktop .force-desktop-hide { display: none !important; }
+        html.force-desktop #content-area { padding: 1.5rem !important; padding-bottom: 1.5rem !important; }
+        html.force-desktop body { font-size: 14px; }
+        html.force-desktop main { min-width: 0; }
+
+        html.force-mobile .force-mobile-hide { display: none !important; }
+        html.force-mobile .force-mobile-show { display: flex !important; }
+        html.force-mobile #content-area { padding: 1rem !important; padding-bottom: 6rem !important; }
+        html.force-mobile body { max-width: 480px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.08); }
+        html.force-mobile .grid-cols-2.md\:grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        html.force-mobile .grid-cols-1.lg\:grid-cols-2 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+        html.force-mobile .grid-cols-1.md\:grid-cols-2 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+        html.force-mobile .grid-cols-1.md\:grid-cols-3 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 h-screen overflow-hidden flex flex-col md:flex-row transition-colors duration-200">
 
-    <!-- Global Loader (Untuk Sinkronisasi Database) -->
-    <div id="global-loader" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[200] hidden flex-col items-center justify-center p-4">
-        <i class="fa-solid fa-circle-notch fa-spin text-5xl text-blue-500 mb-4"></i>
-        <p id="loader-text" class="text-white font-medium text-lg text-center animate-pulse">Memuatkan Sistem...</p>
-    </div>
-
-    <!-- Login Screen Overlay -->
-    <div id="login-screen" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-md text-center fade-in">
-            <div class="bg-eng-blue text-white p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-bolt"></i></div>
-            <h1 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">VoltTrack Login</h1>
-            <p class="text-sm text-slate-500 mb-6">Sistem Tracking RFP-Claim Kejuruteraan</p>
-            
-            <form onsubmit="event.preventDefault(); handleLogin();" class="mb-4">
-                <input type="password" id="login-password" class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white mb-2 focus:ring-2 focus:ring-eng-blue outline-none text-center tracking-widest" placeholder="Kata Laluan" autocomplete="current-password">
-                <p id="login-error" class="text-red-500 text-xs hidden mb-2 font-medium">Kata laluan tidak sah. Sila cuba lagi.</p>
-                <button type="submit" class="w-full bg-eng-blue hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-md shadow-blue-500/30 mt-2">Log Masuk</button>
-            </form>
-            
-            <div class="mt-6 text-left text-xs text-slate-500 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                <p class="font-bold text-slate-700 dark:text-slate-300 mb-2 border-b border-slate-200 dark:border-slate-700 pb-1">Kredensial Akses:</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <p>Super Admin:<br><code class="text-eng-blue dark:text-blue-400 font-bold">super123#</code></p>
-                    <p>Commercial:<br><code class="text-eng-blue dark:text-blue-400 font-bold">comm123#</code></p>
-                    <p>Operation:<br><code class="text-eng-blue dark:text-blue-400 font-bold">oper123#</code></p>
-                    <p>Claim:<br><code class="text-eng-blue dark:text-blue-400 font-bold">claim123#</code></p>
-                    <p>LOD Tracker:<br><code class="text-eng-blue dark:text-blue-400 font-bold">lod123#</code></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Desktop Sidebar -->
-    <aside class="hidden md:flex flex-col w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 shadow-sm z-20">
+    <aside class="hidden md:flex flex-col w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 shadow-sm z-20 force-mobile-hide" id="desktop-sidebar">
         <div class="p-5 flex items-center gap-3 border-b border-slate-200 dark:border-slate-700">
             <div class="bg-eng-blue text-white p-2 rounded-lg"><i class="fa-solid fa-bolt"></i></div>
-            <div class="flex-1 min-w-0">
-                <h1 class="font-bold text-lg leading-tight truncate">VoltTrack</h1>
-                <span id="user-role-badge" class="inline-block mt-0.5 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Role</span>
-            </div>
+            <h1 class="font-bold text-lg leading-tight">VoltTrack<br><span class="text-xs text-slate-500 font-normal">Engineering Monitor</span></h1>
         </div>
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto" id="desktop-nav"></nav>
         <div class="p-4 border-t border-slate-200 dark:border-slate-700 space-y-1">
             <button id="install-btn-desktop" onclick="triggerInstall()" class="hidden items-center gap-3 w-full p-2 text-sm text-eng-blue dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors font-medium">
                 <i class="fa-solid fa-download w-4 text-center"></i> <span>Pasang sebagai App</span>
             </button>
-            <button id="notif-permission-btn" onclick="requestNotifPermission()" class="hidden items-center gap-3 w-full p-2 text-sm text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors font-medium">
+            <button id="notif-permission-btn-desktop" onclick="requestNotifPermission()" class="hidden items-center gap-3 w-full p-2 text-sm text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors font-medium">
                 <i class="fa-solid fa-bell w-4 text-center"></i> <span>Aktifkan Notifikasi</span>
             </button>
-            <button id="theme-toggle-desktop" class="flex items-center gap-3 w-full p-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
-                <i class="fa-solid fa-moon w-4 text-center"></i> <span>Tukar Tema</span>
+            <button onclick="toggleSound()" class="flex items-center gap-3 w-full p-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                <i class="fa-solid fa-volume-high w-4 text-center sound-toggle-icon"></i> <span class="sound-toggle-label">Bunyi: Hidup</span>
             </button>
-            <button onclick="logout()" class="flex items-center gap-3 w-full p-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors mt-2">
-                <i class="fa-solid fa-arrow-right-from-bracket w-4 text-center"></i> <span>Log Keluar</span>
+            <button onclick="toggleViewMode()" class="flex items-center gap-3 w-full p-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                <i class="fa-solid fa-display w-4 text-center view-mode-icon"></i> <span class="view-mode-label">Paparan: Auto</span>
+            </button>
+            <button id="theme-toggle-desktop" class="flex items-center gap-3 w-full p-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                <i class="fa-solid fa-moon w-4 text-center theme-toggle-icon"></i> <span>Tukar Tema</span>
             </button>
         </div>
     </aside>
@@ -213,14 +197,11 @@
     <main class="flex-1 flex flex-col h-full overflow-hidden relative">
         <!-- Top Header -->
         <header class="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm z-20">
-            <div class="flex items-center gap-2 md:hidden">
+            <div class="flex items-center gap-2 force-mobile-show" id="mobile-header-brand">
                 <div class="bg-eng-blue text-white p-1.5 rounded-lg text-sm"><i class="fa-solid fa-bolt"></i></div>
-                <div class="flex flex-col">
-                    <h1 class="font-bold text-md leading-none">VoltTrack</h1>
-                    <span id="user-role-badge-mobile" class="mt-0.5 text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">Role</span>
-                </div>
+                <h1 class="font-bold text-md">VoltTrack</h1>
             </div>
-            <div class="hidden md:block text-sm text-slate-500 dark:text-slate-400" id="breadcrumb">Dashboard</div>
+            <div class="hidden md:block text-sm text-slate-500 dark:text-slate-400 force-mobile-hide" id="breadcrumb">Dashboard</div>
             <div class="flex items-center gap-2">
                 <!-- Install App Button (muncul bila browser sokong PWA install) -->
                 <button id="install-btn" onclick="triggerInstall()" class="hidden items-center gap-2 bg-eng-blue text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors shadow-sm">
@@ -234,11 +215,54 @@
                         <span id="notif-badge" class="notif-badge badge-pulse hidden">0</span>
                     </button>
                 </div>
-                <button id="theme-toggle-mobile" class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
-                    <i class="fa-solid fa-moon"></i>
-                </button>
+                <!-- Settings / More -->
+                <div class="relative">
+                    <button id="settings-btn" onclick="toggleSettingsPanel()" class="relative p-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                        <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+                        <span id="settings-attention-dot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full"></span>
+                    </button>
+                </div>
             </div>
         </header>
+
+        <!-- Settings Dropdown Panel -->
+        <div id="settings-panel" class="hidden absolute top-14 right-4 w-72 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-40 notif-slide overflow-hidden">
+            <div class="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30">
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1"><i class="fa-solid fa-gear mr-1"></i> Tetapan Pantas</p>
+            </div>
+            <div class="p-2">
+                <button id="install-btn-settings" onclick="triggerInstall()" class="hidden items-center gap-3 w-full p-2.5 text-sm text-eng-blue dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors font-medium">
+                    <i class="fa-solid fa-download w-4 text-center"></i> <span>Pasang sebagai App</span>
+                </button>
+                <button id="notif-permission-btn-settings" onclick="requestNotifPermission()" class="hidden items-center gap-3 w-full p-2.5 text-sm text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors font-medium">
+                    <i class="fa-solid fa-bell w-4 text-center"></i> <span>Aktifkan Notifikasi</span>
+                </button>
+                <div id="notif-already-on-settings" class="hidden items-center gap-3 w-full p-2.5 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                    <i class="fa-solid fa-circle-check w-4 text-center"></i> <span>Notifikasi Aktif</span>
+                </div>
+                <button onclick="toggleSound()" class="flex items-center gap-3 w-full p-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fa-solid fa-volume-high w-4 text-center sound-toggle-icon"></i> <span class="sound-toggle-label">Bunyi: Hidup</span>
+                </button>
+                <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2.5 pt-1 pb-0.5">Mod Paparan</p>
+                <button onclick="setViewMode('auto')" class="view-mode-option flex items-center gap-3 w-full p-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" data-mode="auto">
+                    <i class="fa-solid fa-display w-4 text-center"></i> <span>Auto (Ikut Skrin)</span>
+                    <i class="fa-solid fa-check ml-auto text-eng-blue view-mode-check hidden"></i>
+                </button>
+                <button onclick="setViewMode('desktop')" class="view-mode-option flex items-center gap-3 w-full p-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" data-mode="desktop">
+                    <i class="fa-solid fa-desktop w-4 text-center"></i> <span>Paparan Desktop</span>
+                    <i class="fa-solid fa-check ml-auto text-eng-blue view-mode-check hidden"></i>
+                </button>
+                <button onclick="setViewMode('mobile')" class="view-mode-option flex items-center gap-3 w-full p-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" data-mode="mobile">
+                    <i class="fa-solid fa-mobile-screen w-4 text-center"></i> <span>Paparan Mobile</span>
+                    <i class="fa-solid fa-check ml-auto text-eng-blue view-mode-check hidden"></i>
+                </button>
+                <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
+                <button id="theme-toggle-settings" class="flex items-center gap-3 w-full p-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fa-solid fa-moon w-4 text-center theme-toggle-icon"></i> <span>Tukar Tema</span>
+                </button>
+            </div>
+        </div>
 
         <!-- Notification Panel (Dropdown) -->
         <div id="notif-panel" class="hidden absolute top-14 right-0 md:right-4 w-full md:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-40 flex flex-col max-h-[75vh]">
@@ -271,7 +295,7 @@
         <!-- Toast Container -->
         <div id="toast-container"></div>
 
-        <!-- iOS Manual Install Banner (Safari tak sokong auto-install prompt) -->
+        <!-- iOS Manual Install Banner -->
         <div id="ios-install-banner" class="hidden fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-slate-800 dark:bg-slate-700 text-white rounded-xl shadow-2xl p-4 z-40 notif-slide">
             <div class="flex items-start gap-3">
                 <div class="bg-eng-blue p-2 rounded-lg flex-shrink-0"><i class="fa-solid fa-mobile-screen-button"></i></div>
@@ -291,7 +315,7 @@
     </main>
 
     <!-- Mobile Bottom Tab Bar -->
-    <nav class="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex justify-around p-2 pb-safe z-30 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]" id="mobile-nav"></nav>
+    <nav class="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex justify-around p-2 pb-safe z-30 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] force-mobile-show" id="mobile-nav"></nav>
 
     <!-- Modal -->
     <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
@@ -302,7 +326,7 @@
             </div>
             <div class="p-5 overflow-y-auto flex-1" id="modal-body"></div>
             <div class="p-5 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-b-xl">
-                <button id="modal-cancel" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-600">Tutup</button>
+                <button id="modal-cancel" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-600">Batal</button>
                 <button id="modal-save" class="px-6 py-2 text-sm font-medium text-white bg-eng-blue rounded-lg hover:bg-blue-700 shadow-md shadow-blue-500/30">Simpan Data</button>
             </div>
         </div>
@@ -310,89 +334,11 @@
 
     <script>
     // ==========================================
-    // AUTHENTICATION & ROLE MANAGEMENT
-    // ==========================================
-    const ROLES = {
-        'super123#': { id: 'superadmin', name: 'Super Admin' },
-        'comm123#':  { id: 'commercial', name: 'Commercial' },
-        'oper123#':  { id: 'operation',  name: 'Operation' },
-        'claim123#': { id: 'claim',      name: 'Claim' },
-        'lod123#':   { id: 'lod',        name: 'LOD Tracker' }
-    };
-    
-    let currentUser = null;
-
-    // Fungsi Paparan Loading
-    const showLoading = (text = 'Memuatkan...') => {
-        document.getElementById('loader-text').textContent = text;
-        document.getElementById('global-loader').classList.remove('hidden');
-        document.getElementById('global-loader').classList.add('flex');
-    };
-    
-    const hideLoading = () => {
-        document.getElementById('global-loader').classList.add('hidden');
-        document.getElementById('global-loader').classList.remove('flex');
-    };
-
-    const handleLogin = async () => {
-        const pass = document.getElementById('login-password').value;
-        const errorEl = document.getElementById('login-error');
-        
-        if (ROLES[pass]) {
-            currentUser = ROLES[pass];
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('login-password').value = '';
-            errorEl.classList.add('hidden');
-            
-            // Kemas kini UI dengan nama peranan
-            document.getElementById('user-role-badge').textContent = currentUser.name;
-            document.getElementById('user-role-badge-mobile').textContent = currentUser.name;
-            
-            // Mula muat turun data dari backend (Google Sheets)
-            showLoading('Menyegerak Pangkalan Data...');
-            await fetchData();
-            hideLoading();
-            
-            // Mula muat aplikasi
-            autoUpdateLogic();
-            initNav();
-            switchView('dashboard');
-            updateNotifPermissionUI();
-            
-            // Notifikasi Selamat Datang
-            showToast(`Log masuk berjaya. Selamat datang, ${currentUser.name}!`, 'success');
-            
-            // Generate toast yang kritikal selepas login
-            setTimeout(() => {
-                const urgentFirst = notifications.find(n => NOTIF_TYPES[n.type]?.priority === 'urgent');
-                if (urgentFirst) {
-                    showToast(urgentFirst.message, 'urgent');
-                }
-                dispatchNewUrgentNotifications();
-            }, 1200);
-        } else {
-            errorEl.classList.remove('hidden');
-        }
-    };
-
-    const logout = () => {
-        currentUser = null;
-        document.getElementById('login-screen').classList.remove('hidden');
-        document.getElementById('login-password').focus();
-    };
-
-    const canEditPhase = (phase) => {
-        if (!currentUser) return false;
-        if (currentUser.id === 'superadmin') return true;
-        return currentUser.id === phase;
-    };
-
-    // ==========================================
     // NOTIFICATION ENGINE
     // ==========================================
 
     const NOTIF_TYPES = {
-        QUOTATION_APPROVED:   { icon: 'fa-file-check',          color: 'notif-success', category: 'operation', priority: 'success' },
+        QUOTATION_APPROVED:   { icon: 'fa-file-check',         color: 'notif-success', category: 'operation', priority: 'success' },
         OPERATION_PENDING:    { icon: 'fa-helmet-safety',        color: 'notif-info',    category: 'operation', priority: 'info' },
         PTW_MISSING:          { icon: 'fa-triangle-exclamation', color: 'notif-warning', category: 'operation', priority: 'warning' },
         GWR_SUBMITTED:        { icon: 'fa-file-lines',           color: 'notif-info',    category: 'claim',     priority: 'info' },
@@ -408,10 +354,110 @@
     let notifications = [];
     let notifFilter = 'all';
     let notifPanelOpen = false;
+    let settingsPanelOpen = false;
+    let soundEnabled = true;
+    let viewMode = 'auto'; // 'auto' | 'desktop' | 'mobile'
+
+    // ==========================================
+    // INTEGRASI DATABASE (GOOGLE APPS SCRIPT) & ONESIGNAL
+    // ==========================================
+    
+    // MASUKKAN WEB APP URL APPS SCRIPT ANDA DI BAWAH
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNCMvga9CsIYwyJxDb5dpuOa7ybCLvlvE7FyhW__WKExzwcR9hSMDefdN3sw_YRAyqaA/exec";
+    
+    // MASUKKAN ONESIGNAL APP ID ANDA DI BAWAH
+    const ONESIGNAL_APP_ID = "cf955f91-6073-449f-a745-181c7a7dc4f9";
+
+    // Data projek tidak lagi statik, ia akan dimuat turun dari Google Sheets
+    let projects = [];
+    
+    const fetchProjectsFromDB = async () => {
+        try {
+            showToast('Sedang memuat turun data dari Database...', 'info');
+            const response = await fetch(APPS_SCRIPT_URL);
+            const data = await response.json();
+            
+            if (data && !data.error) {
+                projects = data;
+                autoUpdateLogic();
+                switchView(currentView);
+                showToast('✅ Data berjaya disegerakkan.', 'success');
+            } else {
+                console.error("Database Error:", data.error);
+                showToast('Gagal muat turun data. Sila semak pangkalan data.', 'urgent');
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+            showToast('Ralat rangkaian. Memaparkan data tempatan...', 'warning');
+            autoUpdateLogic();
+            switchView(currentView);
+        }
+    };
+
+    // ==========================================
+    // SOUND ENGINE (Web Audio API)
+    // ==========================================
+    let audioCtx = null;
+    const getAudioCtx = () => {
+        if (!audioCtx) {
+            try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            catch (e) { return null; }
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+    };
+
+    const playNotifSound = (urgency = 'info') => {
+        if (!soundEnabled) return;
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+
+        const beep = (freq, startTime, duration, gainPeak = 0.18) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            gain.gain.setValueAtTime(0.0001, startTime);
+            gain.gain.exponentialRampToValueAtTime(gainPeak, startTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+            osc.start(startTime);
+            osc.stop(startTime + duration + 0.02);
+        };
+
+        const now = ctx.currentTime;
+        if (urgency === 'urgent') {
+            beep(880, now, 0.14, 0.22);
+            beep(880, now + 0.18, 0.14, 0.22);
+        } else if (urgency === 'warning') {
+            beep(660, now, 0.16, 0.18);
+        } else if (urgency === 'success') {
+            beep(523.25, now, 0.10, 0.15);
+            beep(783.99, now + 0.10, 0.14, 0.15);
+        } else {
+            beep(587.33, now, 0.14, 0.14);
+        }
+    };
+
+    const toggleSound = () => {
+        soundEnabled = !soundEnabled;
+        try { localStorage.setItem('volttrack_sound_enabled', soundEnabled ? '1' : '0'); } catch (e) {}
+        updateSoundToggleUI();
+        if (soundEnabled) playNotifSound('success');
+    };
+
+    const updateSoundToggleUI = () => {
+        document.querySelectorAll('.sound-toggle-icon').forEach(el => {
+            el.className = soundEnabled ? 'fa-solid fa-volume-high w-4 text-center sound-toggle-icon' : 'fa-solid fa-volume-xmark w-4 text-center sound-toggle-icon';
+        });
+        document.querySelectorAll('.sound-toggle-label').forEach(el => {
+            el.textContent = soundEnabled ? 'Bunyi: Hidup' : 'Bunyi: Senyap';
+        });
+    };
 
     const generateNotifId = () => `notif-${Date.now()}-${Math.random().toString(36).substr(2,5)}`;
 
-    // Generate notifications berdasarkan state projek
     const generateProjectNotifications = () => {
         const today = getToday();
         const newNotifs = [];
@@ -419,163 +465,114 @@
         projects.forEach(p => {
             const projectLabel = `[${p.id}] ${p.company}`;
 
-            // 1. COMMERCIAL → OPERATION
             if (p.status_quotation === 'Approved' && !p.date_start_job) {
                 newNotifs.push({
-                    type: 'OPERATION_PENDING',
-                    projectId: p.id,
+                    type: 'OPERATION_PENDING', projectId: p.id,
                     message: `${projectLabel} — Quotation diluluskan. Sila tetapkan tarikh mula kerja.`,
                     detail: `Date Proceed: ${p.date_proceed || '-'}. Pastikan MOS, JSA & PTW lengkap sebelum mula.`,
-                    action: () => openForm('operation', p.id, canEditPhase('operation')),
-                    actionLabel: 'Isi Operation',
-                    timestamp: p.date_proceed || today,
+                    action: () => openForm('operation', p.id), actionLabel: 'Isi Operation', timestamp: p.date_proceed || today,
                 });
             }
 
-            // 2. PTW belum ready tapi dah ada tarikh mula
             if (p.status_quotation === 'Approved' && p.date_start_job && p.ptw_ready === 'Belum') {
                 newNotifs.push({
-                    type: 'PTW_MISSING',
-                    projectId: p.id,
+                    type: 'PTW_MISSING', projectId: p.id,
                     message: `${projectLabel} — PTW masih belum sedia!`,
                     detail: `Kerja dijadualkan mula ${p.date_start_job}. PTW wajib selesai sebelum mula kerja di tapak.`,
-                    action: () => openForm('operation', p.id, canEditPhase('operation')),
-                    actionLabel: 'Kemaskini Operation',
-                    timestamp: today,
+                    action: () => openForm('operation', p.id), actionLabel: 'Kemaskini Operation', timestamp: today,
                 });
             }
 
-            // 3. OPERATION → CLAIM (GWR submitted)
             if (p.gwr_submitted === 'Yes' && p.full_report_submitted !== 'Yes') {
                 newNotifs.push({
-                    type: 'GWR_SUBMITTED',
-                    projectId: p.id,
+                    type: 'GWR_SUBMITTED', projectId: p.id,
                     message: `${projectLabel} — GWR telah dihantar. Full Report boleh disediakan.`,
                     detail: `GWR Date: ${p.gwr_date}. Sila lengkapkan Full Report untuk ke fasa Claim.`,
-                    action: () => openForm('operation', p.id, canEditPhase('operation')),
-                    actionLabel: 'Kemaskini Operation',
-                    timestamp: p.gwr_date || today,
+                    action: () => openForm('operation', p.id), actionLabel: 'Kemaskini Operation', timestamp: p.gwr_date || today,
                 });
             }
 
-            // 4. Full Report siap → boleh buat invoice
             if (p.full_report_submitted === 'Yes' && !p.invoice_no) {
                 newNotifs.push({
-                    type: 'INVOICE_MISSING',
-                    projectId: p.id,
+                    type: 'INVOICE_MISSING', projectId: p.id,
                     message: `${projectLabel} — Full Report siap! Sila jana Invoice sekarang.`,
                     detail: `Report Date: ${p.full_report_date}. Invoice perlu dihantar dalam 7 hari dari tarikh report.`,
-                    action: () => openForm('claim', p.id, canEditPhase('claim')),
-                    actionLabel: 'Isi Claim',
-                    timestamp: p.full_report_date || today,
+                    action: () => openForm('claim', p.id), actionLabel: 'Isi Claim', timestamp: p.full_report_date || today,
                 });
             }
 
-            // 5. Full Report siap + invoice ada tapi payment pending
             if (p.full_report_submitted === 'Yes' && p.invoice_no && p.payment_status === 'Pending') {
                 newNotifs.push({
-                    type: 'FULL_REPORT_DONE',
-                    projectId: p.id,
+                    type: 'FULL_REPORT_DONE', projectId: p.id,
                     message: `${projectLabel} — Invoice ${p.invoice_no} sedang menunggu pembayaran.`,
                     detail: `Due Date: ${p.payment_due_date || 'Belum ditetapkan'}. Pantau status pembayaran klien.`,
-                    action: () => { switchView('claim'); },
-                    actionLabel: 'Lihat Claim',
-                    timestamp: p.invoice_date || today,
+                    action: () => { switchView('claim'); }, actionLabel: 'Lihat Claim', timestamp: p.invoice_date || today,
                 });
             }
 
-            // 6. Payment due dalam 7 hari
             if (p.payment_due_date && p.payment_status === 'Pending') {
                 const daysLeft = calculateDaysBetween(today, p.payment_due_date);
                 if (daysLeft >= 0 && daysLeft <= 7) {
                     newNotifs.push({
-                        type: 'PAYMENT_DUE_SOON',
-                        projectId: p.id,
+                        type: 'PAYMENT_DUE_SOON', projectId: p.id,
                         message: `${projectLabel} — Pembayaran akan luput dalam ${daysLeft} hari!`,
                         detail: `Due Date: ${p.payment_due_date}. Invoice: ${p.invoice_no}. Hantar peringatan kepada klien segera.`,
-                        action: () => openForm('claim', p.id, canEditPhase('claim')),
-                        actionLabel: 'Kemaskini Claim',
-                        timestamp: today,
+                        action: () => openForm('claim', p.id), actionLabel: 'Kemaskini Claim', timestamp: today,
                     });
                 }
             }
 
-            // 7. Payment OVERDUE → ke LOD
             if (p.payment_status === 'Outstanding' && p.overdue_days > 0) {
                 newNotifs.push({
-                    type: 'PAYMENT_OVERDUE',
-                    projectId: p.id,
+                    type: 'PAYMENT_OVERDUE', projectId: p.id,
                     message: `${projectLabel} — TERTUNGGAK ${p.overdue_days} HARI! Tindakan LOD diperlukan.`,
                     detail: `Due Date: ${p.payment_due_date}. Nilai: ${formatRM(p.quotation_amount)}. Mulakan proses LOD segera.`,
-                    action: () => openForm('lod', p.id, canEditPhase('lod')),
-                    actionLabel: 'Buka LOD Tracker',
-                    timestamp: today,
+                    action: () => openForm('lod', p.id), actionLabel: 'Buka LOD Tracker', timestamp: today,
                 });
             }
 
-            // 8. LOD Reminder patut dihantar
             if (p.payment_status === 'Outstanding' && p.lod_reminder_sent && !p.lod_reminder_date) {
                 const reminderDue = calculateDaysBetween(p.lod_reminder_sent, today);
                 if (reminderDue >= 0) {
                     newNotifs.push({
-                        type: 'LOD_REMINDER_DUE',
-                        projectId: p.id,
+                        type: 'LOD_REMINDER_DUE', projectId: p.id,
                         message: `${projectLabel} — LOD Reminder Letter perlu dihantar hari ini!`,
                         detail: `Tarikh sasaran LOD Reminder: ${p.lod_reminder_sent}. Rekodkan tarikh penghantaran sebenar.`,
-                        action: () => openForm('lod', p.id, canEditPhase('lod')),
-                        actionLabel: 'Rekod LOD',
-                        timestamp: today,
+                        action: () => openForm('lod', p.id), actionLabel: 'Rekod LOD', timestamp: today,
                     });
                 }
             }
 
-            // 9. LOD Issue patut dikeluarkan
             if (p.payment_status === 'Outstanding' && p.lod_issue && !p.lod_issue_date) {
                 const lodIssueDue = calculateDaysBetween(p.lod_issue, today);
                 if (lodIssueDue >= 0) {
                     newNotifs.push({
-                        type: 'LOD_ISSUE_DUE',
-                        projectId: p.id,
+                        type: 'LOD_ISSUE_DUE', projectId: p.id,
                         message: `${projectLabel} — Masa keluarkan Surat LOD Rasmi!`,
                         detail: `Tarikh sasaran: ${p.lod_issue}. Jika tiada respons selepas reminder, LOD rasmi mesti dikeluarkan.`,
-                        action: () => openForm('lod', p.id, canEditPhase('lod')),
-                        actionLabel: 'Keluarkan LOD',
-                        timestamp: today,
+                        action: () => openForm('lod', p.id), actionLabel: 'Keluarkan LOD', timestamp: today,
                     });
                 }
             }
 
-            // 10. CTOS Action needed (overdue > 30 hari)
             if (p.payment_status === 'Outstanding' && p.overdue_days > 30 && (!p.ctos_action || p.ctos_action === 'Pending')) {
                 newNotifs.push({
-                    type: 'CTOS_ACTION_NEEDED',
-                    projectId: p.id,
+                    type: 'CTOS_ACTION_NEEDED', projectId: p.id,
                     message: `${projectLabel} — KRITIKAL! Pertimbangkan tindakan CTOS & Undang-undang.`,
                     detail: `Tertunggak ${p.overdue_days} hari. LOD sudah melebihi tempoh. Sila berbincang dengan peguam / perunding kewangan.`,
-                    action: () => openForm('lod', p.id, canEditPhase('lod')),
-                    actionLabel: 'Update Status LOD',
-                    timestamp: today,
+                    action: () => openForm('lod', p.id), actionLabel: 'Update Status LOD', timestamp: today,
                 });
             }
         });
 
-        // Merge: kekalkan read-status dari notif lama
-        const existingIds = new Set(notifications.map(n => `${n.type}-${n.projectId}`));
-        
-        // Build fresh list, preserve read status
         const readMap = {};
         notifications.forEach(n => { readMap[`${n.type}-${n.projectId}`] = n.read; });
 
         notifications = newNotifs.map(n => {
             const key = `${n.type}-${n.projectId}`;
-            return {
-                ...n,
-                id: generateNotifId(),
-                read: readMap[key] !== undefined ? readMap[key] : false,
-            };
+            return { ...n, id: generateNotifId(), read: readMap[key] !== undefined ? readMap[key] : false };
         });
 
-        // Sort: unread first, then by priority
         const priorityOrder = { urgent: 0, warning: 1, info: 2, success: 3 };
         notifications.sort((a, b) => {
             if (!a.read && b.read) return -1;
@@ -601,7 +598,6 @@
             badge.classList.add('hidden');
             countBadge.classList.add('hidden');
         }
-        // Also update mobile nav notif indicators
         renderNotifPanel();
     };
 
@@ -609,8 +605,20 @@
         const panel = document.getElementById('notif-panel');
         notifPanelOpen = !notifPanelOpen;
         if (notifPanelOpen) {
+            if (settingsPanelOpen) toggleSettingsPanel();
             panel.classList.remove('hidden');
             renderNotifPanel();
+        } else {
+            panel.classList.add('hidden');
+        }
+    };
+
+    const toggleSettingsPanel = () => {
+        const panel = document.getElementById('settings-panel');
+        settingsPanelOpen = !settingsPanelOpen;
+        if (settingsPanelOpen) {
+            if (notifPanelOpen) toggleNotifPanel();
+            panel.classList.remove('hidden');
         } else {
             panel.classList.add('hidden');
         }
@@ -632,11 +640,7 @@
 
     const renderNotifPanel = () => {
         const list = document.getElementById('notif-list');
-        const empty = document.getElementById('notif-empty');
-
-        const filtered = notifFilter === 'all'
-            ? notifications
-            : notifications.filter(n => NOTIF_TYPES[n.type]?.category === notifFilter);
+        const filtered = notifFilter === 'all' ? notifications : notifications.filter(n => NOTIF_TYPES[n.type]?.category === notifFilter);
 
         if (filtered.length === 0) {
             list.innerHTML = `
@@ -649,18 +653,8 @@
 
         list.innerHTML = filtered.map(n => {
             const meta = NOTIF_TYPES[n.type] || {};
-            const priorityColors = {
-                urgent: 'bg-red-50 dark:bg-red-900/10',
-                warning: 'bg-amber-50 dark:bg-amber-900/10',
-                info: 'bg-blue-50 dark:bg-blue-900/10',
-                success: 'bg-emerald-50 dark:bg-emerald-900/10',
-            };
-            const iconColors = {
-                urgent: 'text-red-500 bg-red-100 dark:bg-red-900/30',
-                warning: 'text-amber-500 bg-amber-100 dark:bg-amber-900/30',
-                info: 'text-blue-500 bg-blue-100 dark:bg-blue-900/30',
-                success: 'text-emerald-500 bg-emerald-100 dark:bg-emerald-900/30',
-            };
+            const priorityColors = { urgent: 'bg-red-50 dark:bg-red-900/10', warning: 'bg-amber-50 dark:bg-amber-900/10', info: 'bg-blue-50 dark:bg-blue-900/10', success: 'bg-emerald-50 dark:bg-emerald-900/10' };
+            const iconColors = { urgent: 'text-red-500 bg-red-100 dark:bg-red-900/30', warning: 'text-amber-500 bg-amber-100 dark:bg-amber-900/30', info: 'text-blue-500 bg-blue-100 dark:bg-blue-900/30', success: 'text-emerald-500 bg-emerald-100 dark:bg-emerald-900/30' };
             const bgClass = n.read ? 'bg-white dark:bg-slate-800' : (priorityColors[meta.priority] || 'bg-white dark:bg-slate-800');
             const iconClass = iconColors[meta.priority] || 'text-slate-500 bg-slate-100 dark:bg-slate-700';
 
@@ -676,7 +670,7 @@
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">${n.detail}</p>
                             <div class="flex items-center justify-between mt-2">
                                 <span class="text-[10px] text-slate-400 dark:text-slate-500">${n.timestamp}</span>
-                                <button onclick="event.stopPropagation(); handleNotifAction('${n.id}')" 
+                                <button onclick="event.stopPropagation(); handleNotifAction('${n.id}')"
                                         class="text-xs font-semibold text-eng-blue dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md">
                                     ${n.actionLabel} →
                                 </button>
@@ -690,10 +684,7 @@
 
     const handleNotifClick = (id) => {
         const n = notifications.find(x => x.id === id);
-        if (n) {
-            n.read = true;
-            updateNotifBadge();
-        }
+        if (n) { n.read = true; updateNotifBadge(); }
     };
 
     const handleNotifAction = (id) => {
@@ -706,33 +697,14 @@
         }
     };
 
-    const markAllRead = () => {
-        notifications.forEach(n => n.read = true);
-        updateNotifBadge();
-        renderNotifPanel();
-    };
+    const markAllRead = () => { notifications.forEach(n => n.read = true); updateNotifBadge(); renderNotifPanel(); };
+    const clearAllNotifs = () => { notifications = []; updateNotifBadge(); renderNotifPanel(); };
 
-    const clearAllNotifs = () => {
-        notifications = [];
-        updateNotifBadge();
-        renderNotifPanel();
-    };
-
-    // Show toast notification
     const showToast = (message, type = 'info', actionLabel = null, actionFn = null) => {
+        playNotifSound(type);
         const toastId = `toast-${Date.now()}`;
-        const colors = {
-            urgent: 'bg-red-600 border-red-700',
-            warning: 'bg-amber-500 border-amber-600',
-            info: 'bg-blue-600 border-blue-700',
-            success: 'bg-emerald-600 border-emerald-700',
-        };
-        const icons = {
-            urgent: 'fa-circle-exclamation',
-            warning: 'fa-triangle-exclamation',
-            info: 'fa-circle-info',
-            success: 'fa-circle-check',
-        };
+        const colors = { urgent: 'bg-red-600 border-red-700', warning: 'bg-amber-500 border-amber-600', info: 'bg-blue-600 border-blue-700', success: 'bg-emerald-600 border-emerald-700' };
+        const icons = { urgent: 'fa-circle-exclamation', warning: 'fa-triangle-exclamation', info: 'fa-circle-info', success: 'fa-circle-check' };
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.id = toastId;
@@ -763,7 +735,6 @@
         }, 5000);
     };
 
-    // Auto-show toasts for new urgent/warning notifs
     let lastNotifSnapshot = '';
     const checkNewNotifs = () => {
         const snapshot = JSON.stringify(notifications.map(n => `${n.type}-${n.projectId}`));
@@ -780,31 +751,7 @@
     // ==========================================
     // STATE & DATA
     // ==========================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbxhCF-5vjmtAvnDAPAk6AWgyw6q4oCIUDSlJBWlIjzNcMcz4wGD77JlRZxjVWAtUf7L/exec";
     
-    let projects = [];
-
-    const fetchData = async () => {
-        try {
-            const response = await fetch(API_URL);
-            const result = await response.json();
-            if (result.status === 'success') {
-                // Memastikan tarikh diformat dengan betul jika ditarik dari Google Sheets (buang timestamp "T")
-                projects = result.data.map(p => {
-                    for (let key in p) {
-                        if (p[key] && typeof p[key] === 'string' && key.includes('date') && p[key].includes('T')) {
-                            p[key] = p[key].split('T')[0];
-                        }
-                    }
-                    return p;
-                });
-            }
-        } catch (error) {
-            console.error("Ralat memuat turun data:", error);
-            showToast("Gagal berhubung dengan Pangkalan Data awan. Sila muat semula halaman.", "urgent");
-        }
-    };
-
     const views = [
         { id: 'dashboard',  icon: 'fa-chart-pie',           title: 'Dashboard' },
         { id: 'commercial', icon: 'fa-file-signature',      title: '1. Commercial' },
@@ -860,18 +807,11 @@
                 }
             }
         });
-        // Refresh notifications
         generateProjectNotifications();
         updateNotifBadge();
         checkNewNotifs();
-        if (typeof dispatchNewUrgentNotifications === 'function') {
-            try { dispatchNewUrgentNotifications(); } catch (e) { /* belum sedia lagi masa load awal */ }
-        }
     };
 
-    // ==========================================
-    // NAVIGATION COUNTS (notif dots on nav)
-    // ==========================================
     const getNavNotifCount = (viewId) => {
         const catMap = { operation: 'operation', claim: 'claim', lod: 'lod' };
         const cat = catMap[viewId];
@@ -879,9 +819,6 @@
         return notifications.filter(n => !n.read && NOTIF_TYPES[n.type]?.category === cat).length;
     };
 
-    // ==========================================
-    // NAV INIT
-    // ==========================================
     const initNav = () => {
         const desktopNav = document.getElementById('desktop-nav');
         const mobileNav = document.getElementById('mobile-nav');
@@ -909,14 +846,12 @@
         document.getElementById('breadcrumb').textContent = views.find(v => v.id === currentView)?.title || '';
     };
 
-    // ==========================================
-    // VIEW SWITCHING
-    // ==========================================
     const switchView = (viewId) => {
         currentView = viewId;
         autoUpdateLogic();
         initNav();
         if (notifPanelOpen) toggleNotifPanel();
+        if (settingsPanelOpen) toggleSettingsPanel();
         const content = document.getElementById('content-area');
         content.innerHTML = '';
         content.classList.remove('fade-in');
@@ -945,7 +880,6 @@
         });
         const clientArray = Object.keys(clientSummary).map(company => ({ company, ...clientSummary[company] })).sort((a, b) => b.count - a.count);
 
-        // Notif summary for dashboard
         const urgentNotifs = notifications.filter(n => !n.read && NOTIF_TYPES[n.type]?.priority === 'urgent');
         const warningNotifs = notifications.filter(n => !n.read && NOTIF_TYPES[n.type]?.priority === 'warning');
 
@@ -1116,21 +1050,27 @@
         const paymentCounts = { Paid: 0, Pending: 0, Outstanding: 0 };
         projects.forEach(p => { if (p.payment_status) paymentCounts[p.payment_status] = (paymentCounts[p.payment_status] || 0) + 1; });
 
-        const ctx1 = document.getElementById('chartQuotation').getContext('2d');
-        if (chartInstances.qChart) chartInstances.qChart.destroy();
-        chartInstances.qChart = new Chart(ctx1, {
-            type: 'bar',
-            data: { labels: ['Pending', 'Approved', 'Cancel'], datasets: [{ label: 'Bilangan', data: [statusCounts.Pending, statusCounts.Approved, statusCounts.Cancel], backgroundColor: [colors.orange, colors.blue, colors.gray], borderRadius: 4 }] },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: textColor + '20' }, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
-        });
+        const ctx1El = document.getElementById('chartQuotation');
+        if (ctx1El) {
+            const ctx1 = ctx1El.getContext('2d');
+            if (chartInstances.qChart) chartInstances.qChart.destroy();
+            chartInstances.qChart = new Chart(ctx1, {
+                type: 'bar',
+                data: { labels: ['Pending', 'Approved', 'Cancel'], datasets: [{ label: 'Bilangan', data: [statusCounts.Pending, statusCounts.Approved, statusCounts.Cancel], backgroundColor: [colors.orange, colors.blue, colors.gray], borderRadius: 4 }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: textColor + '20' }, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
+            });
+        }
 
-        const ctx2 = document.getElementById('chartFinance').getContext('2d');
-        if (chartInstances.fChart) chartInstances.fChart.destroy();
-        chartInstances.fChart = new Chart(ctx2, {
-            type: 'doughnut',
-            data: { labels: ['Paid', 'Pending', 'Outstanding (LOD)'], datasets: [{ data: [paymentCounts.Paid, paymentCounts.Pending, paymentCounts.Outstanding], backgroundColor: [colors.green, colors.orange, colors.red], borderWidth: 0, cutout: '70%' }] },
-            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-        });
+        const ctx2El = document.getElementById('chartFinance');
+        if (ctx2El) {
+            const ctx2 = ctx2El.getContext('2d');
+            if (chartInstances.fChart) chartInstances.fChart.destroy();
+            chartInstances.fChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: { labels: ['Paid', 'Pending', 'Outstanding (LOD)'], datasets: [{ data: [paymentCounts.Paid, paymentCounts.Pending, paymentCounts.Outstanding], backgroundColor: [colors.green, colors.orange, colors.red], borderWidth: 0, cutout: '70%' }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
     };
 
     // ==========================================
@@ -1138,8 +1078,7 @@
     // ==========================================
     const renderTable = (phase, container) => {
         let data = [], headers = [], rowBuilder = null, phaseTitle = '';
-        const canAdd = phase === 'commercial' && canEditPhase('commercial');
-        const isEditor = canEditPhase(phase);
+        const canAdd = phase === 'commercial';
 
         if (phase === 'commercial') {
             phaseTitle = "Fasa 1: Commercial / Quotation";
@@ -1199,7 +1138,6 @@
                 <td class="px-4 py-3"><span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-md dark:bg-amber-900/30 dark:text-amber-300 font-medium uppercase">${p.case_status || 'Open'}</span></td>`;
         }
 
-        // Notif banner for each phase
         const phaseNotifs = notifications.filter(n => !n.read && NOTIF_TYPES[n.type]?.category === phase);
         const notifBanner = phaseNotifs.length > 0 ? `
             <div class="mb-4 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl">
@@ -1235,8 +1173,8 @@
                                 <tr class="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                                     ${rowBuilder(p)}
                                     <td class="px-4 py-3">
-                                        <button onclick="openForm('${phase}', '${p.id}', ${isEditor})" class="${isEditor ? 'text-blue-500 hover:text-blue-700 bg-blue-50 dark:bg-blue-900/20 dark:hover:bg-blue-900/50' : 'text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-slate-700/50 dark:hover:bg-slate-700'} px-3 py-1.5 rounded-md transition-colors text-xs font-semibold">
-                                            <i class="fa-solid ${isEditor ? 'fa-pen-to-square' : 'fa-eye'} mr-1"></i>${isEditor ? 'Kemaskini' : 'Lihat Sahaja'}
+                                        <button onclick="openForm('${phase}', '${p.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 dark:bg-blue-900/20 dark:hover:bg-blue-900/50 px-3 py-1.5 rounded-md transition-colors text-xs font-semibold">
+                                            <i class="fa-solid fa-pen-to-square mr-1"></i>Kemaskini
                                         </button>
                                     </td>
                                 </tr>`).join('')}
@@ -1262,28 +1200,16 @@
     // ==========================================
     // FORM LOGIC
     // ==========================================
-    const openForm = (phase, id, isEditor = true) => {
+    const openForm = (phase, id) => {
         currentEditingId = id;
         const p = id ? projects.find(x => x.id === id) : { id: generateId(), date_request: getToday(), status_quotation: 'Pending' };
-        document.getElementById('modal-title').innerText = id ? (isEditor ? `Kemaskini: ${id}` : `Lihat Rekod: ${id}`) : `Daftar Projek Baru`;
-
-        // Kawalan akses: sembunyikan butang simpan jika bukan editor
-        const saveBtn = document.getElementById('modal-save');
-        if (!isEditor) saveBtn.classList.add('hidden');
-        else saveBtn.classList.remove('hidden');
+        document.getElementById('modal-title').innerText = id ? `Kemaskini: ${id}` : `Daftar Projek Baru`;
 
         const createGroup = (label, fid, type, val, opts = {}) => {
             const attrs = [];
-            // Kawalan akses input: disable jika bukan editor atau jika mmg readonly asal
-            if (opts.readonly || !isEditor) attrs.push('readonly');
-            if (!isEditor && type === 'select') attrs.push('disabled');
-            if (opts.required && isEditor) attrs.push('required');
-            
-            // Tambah class kelabu untuk field yang tak boleh edit
-            let bgClass = (!isEditor || opts.readonly) ? "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed border-dashed" : "bg-white dark:bg-slate-700 text-slate-900 dark:text-white";
-            
-            const base = `w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2.5 focus:ring-2 focus:ring-eng-blue focus:border-transparent outline-none transition-all ${bgClass}`;
-            
+            if (opts.readonly) attrs.push('readonly');
+            if (opts.required) attrs.push('required');
+            const base = "w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white px-3 py-2.5 focus:ring-2 focus:ring-eng-blue focus:border-transparent outline-none transition-shadow";
             let inp = '';
             if (type === 'select') {
                 inp = `<select id="${fid}" class="${base}" ${attrs.join(' ')}>
@@ -1407,10 +1333,16 @@
     const saveForm = async () => {
         const id = currentEditingId || document.getElementById('f_id')?.value;
         if (!id) return;
+        
+        // Disable button & ubah teks ketika simpan (UX Feedback)
+        const saveBtn = document.getElementById('modal-save');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...`;
+        saveBtn.disabled = true;
+
         let projIndex = projects.findIndex(p => p.id === id);
         let p = projIndex >= 0 ? { ...projects[projIndex] } : { id };
 
-        // Snapshot before save for notif diffing
         const beforeStatus = { ...p };
 
         document.getElementById('modal-body').querySelectorAll('input, select, textarea').forEach(input => {
@@ -1418,43 +1350,51 @@
             p[key] = input.value;
         });
 
-        // Simpan data secara lokal untuk UI bertindak pantas
-        if (projIndex >= 0) projects[projIndex] = p;
-        else projects.push(p);
-
-        closeModal();
-        showLoading('Menyimpan ke Pangkalan Data...');
-
+        // Simpan ke Google Sheets via Fetch POST
         try {
-            // Hantar data ke Google Apps Script secara POST
-            await fetch(API_URL, {
+            const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify(p)
             });
-
-            // Fire toast if key status changed
-            if (beforeStatus.status_quotation !== 'Approved' && p.status_quotation === 'Approved') {
-                showToast(`✅ ${p.id} diluluskan! Notifikasi Operation dijana.`, 'success');
-            }
-            if (beforeStatus.gwr_submitted !== 'Yes' && p.gwr_submitted === 'Yes') {
-                showToast(`📋 GWR ${p.id} dihantar. Sediakan Full Report.`, 'info');
-            }
-            if (beforeStatus.full_report_submitted !== 'Yes' && p.full_report_submitted === 'Yes') {
-                showToast(`✅ Full Report ${p.id} selesai! Buka Claim untuk jana invoice.`, 'success');
-            }
-            if (p.payment_status === 'Outstanding' && beforeStatus.payment_status !== 'Outstanding') {
-                showToast(`⚠ ${p.id} kini TERTUNGGAK! LOD Tracker dikemas kini.`, 'urgent');
-            }
-            if (p.payment_status === 'Paid' && beforeStatus.payment_status !== 'Paid') {
-                showToast(`💰 ${p.id} telah dibayar! Terima kasih.`, 'success');
-            }
             
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                if (projIndex >= 0) projects[projIndex] = p;
+                else projects.push(p);
+
+                closeModal();
+
+                if (beforeStatus.status_quotation !== 'Approved' && p.status_quotation === 'Approved') {
+                    showToast(`✅ ${p.id} diluluskan! Notifikasi Operation dijana.`, 'success');
+                }
+                if (beforeStatus.gwr_submitted !== 'Yes' && p.gwr_submitted === 'Yes') {
+                    showToast(`📋 GWR ${p.id} dihantar. Sediakan Full Report.`, 'info');
+                }
+                if (beforeStatus.full_report_submitted !== 'Yes' && p.full_report_submitted === 'Yes') {
+                    showToast(`✅ Full Report ${p.id} selesai! Buka Claim untuk jana invoice.`, 'success');
+                }
+                if (p.payment_status === 'Outstanding' && beforeStatus.payment_status !== 'Outstanding') {
+                    showToast(`⚠ ${p.id} kini TERTUNGGAK! LOD Tracker dikemas kini.`, 'urgent');
+                }
+                if (p.payment_status === 'Paid' && beforeStatus.payment_status !== 'Paid') {
+                    showToast(`💰 ${p.id} telah dibayar! Terima kasih.`, 'success');
+                }
+
+                autoUpdateLogic();
+                switchView(currentView);
+            } else {
+                showToast('Ralat ketika menyimpan ke Server.', 'urgent');
+            }
         } catch (error) {
-            console.error("Ralat POST:", error);
-            showToast("Ralat berhubung dengan Google Sheets! Sila periksa internet.", "urgent");
+            console.error('Save error:', error);
+            showToast('Tiada sambungan internet. Gagal menyimpan.', 'urgent');
         } finally {
-            hideLoading();
-            switchView(currentView);
+            // Restore button
+            if (document.getElementById('modal-save')) {
+                document.getElementById('modal-save').innerHTML = originalText;
+                document.getElementById('modal-save').disabled = false;
+            }
         }
     };
 
@@ -1469,45 +1409,97 @@
     // ==========================================
     const toggleTheme = () => {
         document.documentElement.classList.toggle('dark');
+        try { localStorage.setItem('volttrack_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
         if (chartInstances.qChart) initCharts();
     };
 
-    // Close notif panel on outside click
+    // ==========================================
+    // VIEW MODE TOGGLE (Desktop View / Mobile View / Auto)
+    // ==========================================
+    const setViewMode = (mode) => {
+        viewMode = mode;
+        document.documentElement.classList.remove('force-desktop', 'force-mobile');
+        if (mode === 'desktop') document.documentElement.classList.add('force-desktop');
+        if (mode === 'mobile') document.documentElement.classList.add('force-mobile');
+        try { localStorage.setItem('volttrack_view_mode', mode); } catch (e) {}
+        updateViewModeUI();
+        showToast(
+            mode === 'auto' ? '🖥️ Paparan kembali ke Auto (ikut saiz skrin).' :
+            mode === 'desktop' ? '🖥️ Paparan dipaksa ke mod Desktop.' :
+            '📱 Paparan dipaksa ke mod Mobile.',
+            'info'
+        );
+        setTimeout(() => switchView(currentView), 50);
+    };
+
+    const toggleViewMode = () => {
+        const order = ['auto', 'desktop', 'mobile'];
+        const next = order[(order.indexOf(viewMode) + 1) % order.length];
+        setViewMode(next);
+    };
+
+    const updateViewModeUI = () => {
+        const labelMap = { auto: 'Paparan: Auto', desktop: 'Paparan: Desktop', mobile: 'Paparan: Mobile' };
+        const iconMap = { auto: 'fa-display', desktop: 'fa-desktop', mobile: 'fa-mobile-screen' };
+        document.querySelectorAll('.view-mode-label').forEach(el => { el.textContent = labelMap[viewMode]; });
+        document.querySelectorAll('.view-mode-icon').forEach(el => { el.className = `fa-solid ${iconMap[viewMode]} w-4 text-center view-mode-icon`; });
+        document.querySelectorAll('.view-mode-option').forEach(btn => {
+            const check = btn.querySelector('.view-mode-check');
+            if (btn.dataset.mode === viewMode) check.classList.remove('hidden');
+            else check.classList.add('hidden');
+        });
+    };
+
     document.addEventListener('click', (e) => {
-        const panel = document.getElementById('notif-panel');
-        const btn = document.getElementById('notif-btn');
-        if (notifPanelOpen && !panel.contains(e.target) && !btn.contains(e.target)) {
+        const notifPanel = document.getElementById('notif-panel');
+        const notifBtn = document.getElementById('notif-btn');
+        const settingsPanel = document.getElementById('settings-panel');
+        const settingsBtn = document.getElementById('settings-btn');
+
+        if (notifPanelOpen && !notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
             toggleNotifPanel();
+        }
+        if (settingsPanelOpen && !settingsPanel.contains(e.target) && !settingsBtn.contains(e.target)) {
+            toggleSettingsPanel();
         }
     });
 
     // ==========================================
     // PWA: SERVICE WORKER REGISTRATION
     // ==========================================
-    // NOTA: service worker hanya boleh didaftar bila app dibuka dari https://
-    // atau localhost. Bukaan terus dari fail (file://) akan gagal senyap -
-    // ini normal, app tetap berfungsi penuh sebagai laman web biasa.
     let swRegistration = null;
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js')
                 .then((reg) => { swRegistration = reg; })
-                .catch((err) => { console.log('Service worker tidak berdaftar (normal jika dibuka dari fail terus):', err.message); });
+                .catch((err) => { console.log('Service worker tidak berdaftar:', err.message); });
         });
     }
 
     // ==========================================
-    // PWA: INSTALL PROMPT (Android / Desktop Chrome/Edge)
+    // PWA: INSTALL PROMPT
     // ==========================================
     let deferredInstallPrompt = null;
+
+    const showInstallButtons = () => {
+        ['install-btn', 'install-btn-desktop', 'install-btn-settings'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.classList.remove('hidden'); el.classList.add('flex'); }
+        });
+        const dot = document.getElementById('settings-attention-dot');
+        if (dot) dot.classList.remove('hidden');
+    };
+    const hideInstallButtons = () => {
+        ['install-btn', 'install-btn-desktop', 'install-btn-settings'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+        });
+    };
 
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredInstallPrompt = e;
-        document.getElementById('install-btn').classList.remove('hidden');
-        document.getElementById('install-btn').classList.add('flex');
-        document.getElementById('install-btn-desktop').classList.remove('hidden');
-        document.getElementById('install-btn-desktop').classList.add('flex');
+        showInstallButtons();
     });
 
     const triggerInstall = async () => {
@@ -1521,17 +1513,14 @@
             showToast('✅ VoltTrack berjaya dipasang di peranti anda!', 'success');
         }
         deferredInstallPrompt = null;
-        document.getElementById('install-btn').classList.add('hidden');
-        document.getElementById('install-btn-desktop').classList.add('hidden');
+        hideInstallButtons();
     };
 
     window.addEventListener('appinstalled', () => {
-        document.getElementById('install-btn').classList.add('hidden');
-        document.getElementById('install-btn-desktop').classList.add('hidden');
+        hideInstallButtons();
         document.getElementById('ios-install-banner').classList.add('hidden');
     });
 
-    // --- iOS Safari: tiada beforeinstallprompt, papar arahan manual ---
     const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent) ||
                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const isInStandaloneMode = () => ('standalone' in window.navigator) && window.navigator.standalone;
@@ -1552,40 +1541,52 @@
     };
 
     // ==========================================
-    // NOTIFICATION PERMISSION + LOCAL NOTIFICATION DISPATCH
+    // NOTIFICATION PERMISSION (ONESIGNAL INTEGRATION)
     // ==========================================
     const updateNotifPermissionUI = () => {
-        const btn = document.getElementById('notif-permission-btn');
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function(OneSignal) {
-            // Sembunyikan butang jika pengguna sudah benarkan notifikasi
-            if (OneSignal.Notifications.permission === true) {
-                btn.classList.add('hidden');
-            } else {
-                btn.classList.remove('hidden');
-                btn.classList.add('flex');
-            }
-        });
+        const btnDesktop = document.getElementById('notif-permission-btn-desktop');
+        const btnSettings = document.getElementById('notif-permission-btn-settings');
+        const alreadyOn = document.getElementById('notif-already-on-settings');
+
+        // Check if OneSignal is ready
+        if (window.OneSignalDeferred) {
+            window.OneSignalDeferred.push(async function(OneSignal) {
+                const isPushSupported = OneSignal.Notifications.isPushSupported();
+                const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
+                
+                if (!isPushSupported) {
+                    [btnDesktop, btnSettings].forEach(b => b && b.classList.add('hidden'));
+                    return;
+                }
+
+                if (isSubscribed) {
+                    [btnDesktop, btnSettings].forEach(b => { if (b) { b.classList.add('hidden'); b.classList.remove('flex'); } });
+                    if (alreadyOn) { alreadyOn.classList.remove('hidden'); alreadyOn.classList.add('flex'); }
+                } else {
+                    [btnDesktop, btnSettings].forEach(b => { if (b) { b.classList.remove('hidden'); b.classList.add('flex'); } });
+                    if (alreadyOn) alreadyOn.classList.add('hidden');
+                    const dot = document.getElementById('settings-attention-dot');
+                    if (dot) dot.classList.remove('hidden');
+                }
+            });
+        }
     };
 
     const requestNotifPermission = async () => {
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function(OneSignal) {
-            // Minta kebenaran push notification menggunakan prompt rasmi OneSignal
+        window.OneSignalDeferred.push(async function(OneSignal) {
             await OneSignal.Slidedown.promptPush();
-            updateNotifPermissionUI();
-            
-            if (OneSignal.Notifications.permission === true) {
-                showToast('🔔 Notifikasi OneSignal berjaya diaktifkan!', 'success');
-            }
+            // User akan nampak popup native browser untuk allow notification
+            setTimeout(() => {
+                updateNotifPermissionUI();
+            }, 3000); // Check semula status selepas beberapa saat
         });
     };
 
-    // Hantar local notification (melalui Service Worker jika ada, atau terus jika tidak)
-    // PENTING: ini local notification, bukan push jarak jauh. Ia hanya berfungsi
-    // bila tab/app ini dibuka aktif atau baru sahaja di background (bukan ditutup total).
+    // Kita kekalkan local alert untuk in-app experience bila app sedang dibuka
     const dispatchLocalNotification = (title, body, urgency = 'info', tag = null) => {
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+        playNotifSound(urgency);
 
         if (swRegistration && swRegistration.active) {
             swRegistration.active.postMessage({
@@ -1596,14 +1597,13 @@
             swRegistration.showNotification(title, {
                 body, icon: './icons/icon-192.png', badge: './icons/icon-192.png',
                 tag: tag || `vt-${Date.now()}`,
+                vibrate: urgency === 'urgent' ? [200, 100, 200] : [100],
             });
         } else {
-            // Fallback tanpa service worker (terus guna Notification API)
             new Notification(title, { body, icon: './icons/icon-192.png' });
         }
     };
 
-    // Track notif yang sudah pernah dihantar sebagai OS notification (elak spam berulang)
     let dispatchedNotifKeys = new Set();
     const dispatchNewUrgentNotifications = () => {
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
@@ -1620,20 +1620,76 @@
     };
 
     // ==========================================
+    // RESTORE SAVED PREFERENCES
+    // ==========================================
+    const restorePreferences = () => {
+        try {
+            const savedTheme = localStorage.getItem('volttrack_theme');
+            if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+
+            const savedSound = localStorage.getItem('volttrack_sound_enabled');
+            if (savedSound !== null) soundEnabled = savedSound === '1';
+            updateSoundToggleUI();
+
+            const savedViewMode = localStorage.getItem('volttrack_view_mode');
+            if (savedViewMode && ['auto', 'desktop', 'mobile'].includes(savedViewMode)) {
+                viewMode = savedViewMode;
+                document.documentElement.classList.remove('force-desktop', 'force-mobile');
+                if (viewMode === 'desktop') document.documentElement.classList.add('force-desktop');
+                if (viewMode === 'mobile') document.documentElement.classList.add('force-mobile');
+            }
+            updateViewModeUI();
+        } catch (e) {}
+    };
+
+    // ==========================================
     // INIT
     // ==========================================
     document.getElementById('modal-close').addEventListener('click', closeModal);
     document.getElementById('modal-cancel').addEventListener('click', closeModal);
     document.getElementById('modal-save').addEventListener('click', saveForm);
     document.getElementById('theme-toggle-desktop')?.addEventListener('click', toggleTheme);
-    document.getElementById('theme-toggle-mobile').addEventListener('click', toggleTheme);
+    document.getElementById('theme-toggle-settings')?.addEventListener('click', toggleTheme);
 
     window.onload = () => {
-        // Papar iOS manual install banner jika relevan
-        maybeShowIosBanner();
+        // Init OneSignal
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(function(OneSignal) {
+            OneSignal.init({
+                appId: ONESIGNAL_APP_ID,
+                safari_web_id: "", // Optional: Masukkan ID Safari web jika ada
+                notifyButton: {
+                    enable: true, // Butang kecil "Loceng" OneSignal di penjuru bawah
+                },
+                allowLocalhostAsSecureOrigin: true // Membenarkan test dari 127.0.0.1
+            });
+            
+            // Listeners
+            OneSignal.User.PushSubscription.addEventListener("change", function(subscription) {
+                if (subscription.current.optedIn) {
+                    showToast('🔔 Tahniah! Anda kini melanggan Notifikasi Web (OneSignal).', 'success');
+                }
+                updateNotifPermissionUI();
+            });
+        });
+
+        restorePreferences();
         
-        // (autoUpdateLogic dan initNav kini dipindahkan ke handleLogin()
-        // supaya data tidak dimuat sebelum kata laluan disahkan)
+        // PENTING: Kita panggil fungsi muat turun pangkalan data dari Google Sheet.
+        // Papan pemuka hanya akan muncul setelah data siap diambil.
+        fetchProjectsFromDB();
+
+        updateNotifPermissionUI();
+        maybeShowIosBanner();
+
+        // Dispatch initial local notifs jika ada setelah fetch selesai
+        setTimeout(() => {
+            const urgentFirst = notifications.find(n => NOTIF_TYPES[n.type]?.priority === 'urgent');
+            if (urgentFirst) {
+                showToast(urgentFirst.message, 'urgent');
+            }
+            dispatchNewUrgentNotifications();
+        }, 3000);
     };
     </script>
 </body>

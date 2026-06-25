@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VoltTrack - Sistem Pemantauan Kejuruteraan Elektrikal</title>
 
-    <!-- PWA: manifest + meta tags (Manifest di-inline-kan untuk mengekalkan struktur 1 Fail) -->
+    <!-- PWA: manifest + meta tags -->
     <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22VoltTrack%22%2C%22short_name%22%3A%22VoltTrack%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23005b96%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Flh3.googleusercontent.com%2Fd%2F1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
     <meta name="theme-color" content="#005b96">
     <meta name="mobile-web-app-capable" content="yes">
@@ -210,7 +210,7 @@
                 <!-- Install App Button (muncul bila browser sokong PWA install) -->
                 <button id="install-btn" onclick="triggerInstall()" class="hidden items-center gap-2 bg-eng-blue text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors shadow-sm">
                     <i class="fa-solid fa-download"></i>
-                    <span class="hidden sm:inline">Install App</span>
+                    <span class="hidden sm:inline">Download App</span>
                 </button>
                 <!-- Notification Bell -->
                 <div class="relative">
@@ -236,7 +236,7 @@
             </div>
             <div class="p-2">
                 <button id="install-btn-settings" onclick="triggerInstall()" class="hidden items-center gap-3 w-full p-2.5 text-sm text-eng-blue dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors font-medium">
-                    <i class="fa-solid fa-download w-4 text-center"></i> <span>Pasang sebagai App</span>
+                    <i class="fa-solid fa-download w-4 text-center"></i> <span>Download App</span>
                 </button>
                 <button id="notif-permission-btn-settings" onclick="requestNotifPermission()" class="hidden items-center gap-3 w-full p-2.5 text-sm text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors font-medium">
                     <i class="fa-solid fa-bell w-4 text-center"></i> <span>Aktifkan Notifikasi</span>
@@ -368,7 +368,7 @@
     // ==========================================
     
     // MASUKKAN WEB APP URL APPS SCRIPT ANDA DI BAWAH
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxY6DgZWBc7SH-xWtehnaYAyJw83sO3SMOuxFmly1mCsJHcbjYdUVKFbpcRs_0S_xy7rw/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNCMvga9CsIYwyJxDb5dpuOa7ybCLvlvE7FyhW__WKExzwcR9hSMDefdN3sw_YRAyqaA/exec";
     
     // MASUKKAN ONESIGNAL APP ID ANDA DI BAWAH
     const ONESIGNAL_APP_ID = "cf955f91-6073-449f-a745-181c7a7dc4f9";
@@ -1013,7 +1013,7 @@
                     </table>
                 </div>
             </div>
-
+            
             <!-- Footer -->
             <div class="text-center mt-10 mb-4 text-xs font-medium text-slate-400 dark:text-slate-500">
                 &copy; 2026 All Right Reserved by Voltake

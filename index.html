@@ -5,15 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VoltTrack - Sistem Pemantauan Kejuruteraan Elektrikal</title>
 
-    <!-- PWA: manifest + meta tags -->
-    <link rel="manifest" href="./manifest.json">
+    <!-- PWA: manifest + meta tags (Manifest di-inline-kan untuk mengekalkan struktur 1 Fail) -->
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22VoltTrack%22%2C%22short_name%22%3A%22VoltTrack%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23005b96%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Flh3.googleusercontent.com%2Fd%2F1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
     <meta name="theme-color" content="#005b96">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="VoltTrack">
-    <link rel="apple-touch-icon" href="./icons/icon-192.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+    
+    <!-- Favicon & Apple Touch Icon menggunakan Logo Google Drive -->
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps">
+    <link rel="icon" href="https://lh3.googleusercontent.com/d/1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps">
 
     <!-- === TAMBAH ONESIGNAL SDK === -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
@@ -170,7 +172,8 @@
     <!-- Desktop Sidebar -->
     <aside class="hidden md:flex flex-col w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 shadow-sm z-20 force-mobile-hide" id="desktop-sidebar">
         <div class="p-5 flex items-center gap-3 border-b border-slate-200 dark:border-slate-700">
-            <div class="bg-eng-blue text-white p-2 rounded-lg"><i class="fa-solid fa-bolt"></i></div>
+            <!-- Logo Baharu -->
+            <img src="https://lh3.googleusercontent.com/d/1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps" alt="VoltTrack Logo" class="w-9 h-9 object-contain rounded-lg drop-shadow-sm bg-white p-0.5">
             <h1 class="font-bold text-lg leading-tight">VoltTrack<br><span class="text-xs text-slate-500 font-normal">Engineering Monitor</span></h1>
         </div>
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto" id="desktop-nav"></nav>
@@ -198,7 +201,8 @@
         <!-- Top Header -->
         <header class="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm z-20">
             <div class="flex items-center gap-2 force-mobile-show" id="mobile-header-brand">
-                <div class="bg-eng-blue text-white p-1.5 rounded-lg text-sm"><i class="fa-solid fa-bolt"></i></div>
+                <!-- Logo Baharu (Mobile) -->
+                <img src="https://lh3.googleusercontent.com/d/1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps" alt="VoltTrack Logo" class="w-8 h-8 object-contain rounded-md drop-shadow-sm bg-white p-0.5">
                 <h1 class="font-bold text-md">VoltTrack</h1>
             </div>
             <div class="hidden md:block text-sm text-slate-500 dark:text-slate-400 force-mobile-hide" id="breadcrumb">Dashboard</div>
@@ -298,7 +302,8 @@
         <!-- iOS Manual Install Banner -->
         <div id="ios-install-banner" class="hidden fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-slate-800 dark:bg-slate-700 text-white rounded-xl shadow-2xl p-4 z-40 notif-slide">
             <div class="flex items-start gap-3">
-                <div class="bg-eng-blue p-2 rounded-lg flex-shrink-0"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                <!-- Icon iOS Banner Baharu -->
+                <div class="bg-white p-1.5 rounded-lg flex-shrink-0"><img src="https://lh3.googleusercontent.com/d/1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps" alt="VoltTrack Icon" class="w-6 h-6 object-contain"></div>
                 <div class="flex-1">
                     <p class="text-sm font-semibold mb-1">Pasang VoltTrack di iPhone</p>
                     <p class="text-xs text-slate-300 leading-relaxed">
@@ -363,7 +368,7 @@
     // ==========================================
     
     // MASUKKAN WEB APP URL APPS SCRIPT ANDA DI BAWAH
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNCMvga9CsIYwyJxDb5dpuOa7ybCLvlvE7FyhW__WKExzwcR9hSMDefdN3sw_YRAyqaA/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxY6DgZWBc7SH-xWtehnaYAyJw83sO3SMOuxFmly1mCsJHcbjYdUVKFbpcRs_0S_xy7rw/exec";
     
     // MASUKKAN ONESIGNAL APP ID ANDA DI BAWAH
     const ONESIGNAL_APP_ID = "cf955f91-6073-449f-a745-181c7a7dc4f9";
@@ -371,26 +376,47 @@
     // Data projek tidak lagi statik, ia akan dimuat turun dari Google Sheets
     let projects = [];
     
-    const fetchProjectsFromDB = async () => {
+    const fetchProjectsFromDB = async (isSilent = false) => {
         try {
-            showToast('Sedang memuat turun data dari Database...', 'info');
+            if (!isSilent) showToast('Sedang memuat turun data dari Database...', 'info');
             const response = await fetch(APPS_SCRIPT_URL);
             const data = await response.json();
             
             if (data && !data.error) {
                 projects = data;
                 autoUpdateLogic();
-                switchView(currentView);
-                showToast('✅ Data berjaya disegerakkan.', 'success');
+                
+                // Semak jika pengguna sedang mengisi borang
+                const isModalOpen = document.getElementById('modal-backdrop').classList.contains('flex');
+                
+                if (!isModalOpen) {
+                    // Simpan posisi scroll sekarang supaya skrin tak melompat ke atas
+                    const content = document.getElementById('content-area');
+                    const currentScroll = content.scrollTop || 0;
+                    
+                    switchView(currentView);
+                    
+                    // Kembalikan posisi scroll
+                    setTimeout(() => {
+                        document.getElementById('content-area').scrollTop = currentScroll;
+                    }, 50);
+                } else {
+                    // Jika borang terbuka, hanya kemaskini lencana (badge) notifikasi di menu
+                    initNav();
+                }
+                
+                if (!isSilent) showToast('✅ Data berjaya disegerakkan.', 'success');
             } else {
                 console.error("Database Error:", data.error);
-                showToast('Gagal muat turun data. Sila semak pangkalan data.', 'urgent');
+                if (!isSilent) showToast('Gagal muat turun data. Sila semak pangkalan data.', 'urgent');
             }
         } catch (error) {
             console.error('Fetch error:', error);
-            showToast('Ralat rangkaian. Memaparkan data tempatan...', 'warning');
+            if (!isSilent) showToast('Ralat rangkaian. Memaparkan data tempatan...', 'warning');
             autoUpdateLogic();
-            switchView(currentView);
+            if (!document.getElementById('modal-backdrop').classList.contains('flex')) {
+                switchView(currentView);
+            }
         }
     };
 
@@ -987,6 +1013,11 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-10 mb-4 text-xs font-medium text-slate-400 dark:text-slate-500">
+                &copy; 2026 All Right Reserved by Voltake
+            </div>
         `;
         setTimeout(() => initCharts(), 100);
     };
@@ -1181,6 +1212,11 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="text-center mt-10 mb-4 text-xs font-medium text-slate-400 dark:text-slate-500">
+                &copy; 2026 All Right Reserved by Voltake
             </div>`;
     };
 
@@ -1587,6 +1623,7 @@
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
         playNotifSound(urgency);
+        const iconUrl = 'https://lh3.googleusercontent.com/d/1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps';
 
         if (swRegistration && swRegistration.active) {
             swRegistration.active.postMessage({
@@ -1595,12 +1632,12 @@
             });
         } else if (swRegistration) {
             swRegistration.showNotification(title, {
-                body, icon: './icons/icon-192.png', badge: './icons/icon-192.png',
+                body, icon: iconUrl, badge: iconUrl,
                 tag: tag || `vt-${Date.now()}`,
                 vibrate: urgency === 'urgent' ? [200, 100, 200] : [100],
             });
         } else {
-            new Notification(title, { body, icon: './icons/icon-192.png' });
+            new Notification(title, { body, icon: iconUrl });
         }
     };
 
@@ -1654,10 +1691,10 @@
     window.onload = () => {
         // Init OneSignal
         window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(function(OneSignal) {
-            OneSignal.init({
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
                 appId: ONESIGNAL_APP_ID,
-                safari_web_id: "", // Optional: Masukkan ID Safari web jika ada
+                safari_web_id: "web.onesignal.auto.34f3144b-3497-4c5c-a43c-a5d9eb9bdd56", // Menggunakan safari web id yang anda berikan
                 notifyButton: {
                     enable: true, // Butang kecil "Loceng" OneSignal di penjuru bawah
                 },
@@ -1678,6 +1715,11 @@
         // PENTING: Kita panggil fungsi muat turun pangkalan data dari Google Sheet.
         // Papan pemuka hanya akan muncul setelah data siap diambil.
         fetchProjectsFromDB();
+
+        // === TAMBAHAN BARU: AUTO REFRESH 5 MINIT (300,000 ms) ===
+        setInterval(() => {
+            fetchProjectsFromDB(true); // 'true' = Refresh secara senyap (tiada bunyi & toast)
+        }, 300000);
 
         updateNotifPermissionUI();
         maybeShowIosBanner();

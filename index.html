@@ -6,8 +6,8 @@
     <title>VoltTrack - Sistem Pemantauan Kejuruteraan Elektrikal</title>
 
     <!-- PWA: manifest + meta tags -->
-    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22VoltTrack%22%2C%22short_name%22%3A%22VoltTrack%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23005b96%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Flh3.googleusercontent.com%2Fd%2F1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
-    <meta name="theme-color" content="#005b96">
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22VoltTrack%22%2C%22short_name%22%3A%22VoltTrack%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%232F6FED%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Flh3.googleusercontent.com%2Fd%2F1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+    <meta name="theme-color" content="#2F6FED">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,6 +24,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
           onerror="document.documentElement.classList.add('fa-fallback')">
+
+    <!-- ===== FONT: Inter (mengikut tema UI reference) ===== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Kalau Google Fonts gagal load (offline/blocked), Tailwind font-sans akan
+         fallback automatik ke ui-sans-serif/system-ui (lihat fontFamily config bawah) -->
     <script>
         // Fallback check: kalau FontAwesome CDN gagal load (offline / blocked),
         // tukar guna emoji/symbol supaya button TIDAK nampak kosong/hilang icon.
@@ -48,7 +55,12 @@
             theme: {
                 extend: {
                     colors: {
-                        eng: { blue: '#005b96', dark: '#011f4b', light: '#6497b1', b3: '#b3cde0' }
+                        // Tema baru: navy gelap untuk aksen "aktif" (nav, header) +
+                        // biru terang untuk butang/link utama — ikut reference UI.
+                        eng: { blue: '#2F6FED', dark: '#101B33', light: '#6497b1', b3: '#DCE7FB' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif']
                     }
                 }
             }
@@ -114,6 +126,10 @@
         .fa-fallback i.fa-desktop::before { content: '🖥️'; }
         .fa-fallback i.fa-square-up-right::before { content: '⬆️'; }
         .fa-fallback i.fa-gear::before { content: '⚙️'; }
+        .fa-fallback i.fa-right-from-bracket::before { content: '🚪'; }
+        .fa-fallback i.fa-user::before { content: '👤'; }
+        .fa-fallback i.fa-eye::before { content: '👁️'; }
+        .fa-fallback i.fa-user-shield::before { content: '🛡️'; }
 
         /* Notification panel */
         #notif-panel, #settings-panel {
@@ -167,7 +183,41 @@
         html.force-mobile .grid-cols-1.md\:grid-cols-3 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 h-screen overflow-hidden flex flex-col md:flex-row transition-colors duration-200">
+<body class="font-sans bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 h-screen overflow-hidden transition-colors duration-200">
+
+    <!-- ========================================== -->
+    <!-- LOGIN GATE -->
+    <!-- ========================================== -->
+    <div id="login-screen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+        <form id="login-form" class="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-8">
+            <div class="flex flex-col items-center mb-6">
+                <img src="https://lh3.googleusercontent.com/d/1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps" alt="VoltTrack Logo" class="w-14 h-14 object-contain rounded-2xl bg-white p-1 shadow-sm mb-3">
+                <h1 class="font-bold text-xl text-slate-800 dark:text-white">VoltTrack</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Sistem Pemantauan Kejuruteraan Elektrikal</p>
+            </div>
+            <div id="login-error" class="hidden mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg"></div>
+            <div class="mb-4">
+                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Username</label>
+                <input id="login-username" type="text" autocomplete="username" required
+                    class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-eng-blue text-sm">
+            </div>
+            <div class="mb-6">
+                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Password</label>
+                <input id="login-password" type="password" autocomplete="current-password" required
+                    class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-eng-blue text-sm">
+            </div>
+            <button id="login-submit-btn" type="submit"
+                class="w-full bg-eng-blue hover:bg-blue-700 text-white font-semibold py-2.5 rounded-full shadow-sm transition-colors text-sm">
+                Log Masuk
+            </button>
+            <p class="text-center text-[11px] text-slate-400 mt-5">&copy; 2026 Voltake. Akses terhad kepada staff berdaftar.</p>
+        </form>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- APP SHELL (nampak lepas login berjaya) -->
+    <!-- ========================================== -->
+    <div id="app-shell" class="hidden h-full w-full flex-col md:flex-row">
 
     <!-- Desktop Sidebar -->
     <aside class="hidden md:flex flex-col w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 shadow-sm z-20 force-mobile-hide" id="desktop-sidebar">
@@ -176,6 +226,17 @@
             <h1 class="font-bold text-lg leading-tight">VoltTrack<br><span class="text-xs text-slate-500 font-normal">Engineering Monitor</span></h1>
         </div>
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto" id="desktop-nav"></nav>
+        <div class="px-4 py-3 border-t border-slate-200 dark:border-slate-700 flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-eng-blue text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p id="current-user-name" class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">-</p>
+            </div>
+            <button onclick="doLogout()" title="Log Keluar" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
         <div class="p-4 border-t border-slate-200 dark:border-slate-700 space-y-1">
             <button id="install-btn-desktop" onclick="triggerInstall()" class="hidden items-center gap-3 w-full p-2 text-sm text-eng-blue dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors font-medium">
                 <i class="fa-solid fa-download w-4 text-center"></i> <span>Pasang sebagai App</span>
@@ -204,18 +265,23 @@
             </div>
             <div class="hidden md:block text-sm text-slate-500 dark:text-slate-400 force-mobile-hide" id="breadcrumb">Dashboard</div>
             <div class="flex items-center gap-2">
-                <button id="install-btn" onclick="triggerInstall()" class="hidden items-center gap-2 bg-eng-blue text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+                <div id="role-badge" class="hidden sm:flex items-center gap-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 pl-3 pr-3 py-1.5 rounded-full text-xs">
+                    <i class="fa-solid fa-user-shield text-eng-blue"></i>
+                    <span class="text-slate-400 dark:text-slate-500 font-semibold tracking-wide">PERANAN</span>
+                    <span id="role-badge-label" class="font-bold text-slate-700 dark:text-slate-200">-</span>
+                </div>
+                <button id="install-btn" onclick="triggerInstall()" class="hidden items-center gap-2 bg-eng-blue text-white px-3 py-2 rounded-full text-xs font-semibold hover:bg-blue-700 transition-colors shadow-sm">
                     <i class="fa-solid fa-download"></i>
                     <span class="hidden sm:inline">Download App</span>
                 </button>
                 <div class="relative">
-                    <button id="notif-btn" onclick="toggleNotifPanel()" class="relative p-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                    <button id="notif-btn" onclick="toggleNotifPanel()" class="relative p-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
                         <i class="fa-solid fa-bell text-lg"></i>
                         <span id="notif-badge" class="notif-badge badge-pulse hidden">0</span>
                     </button>
                 </div>
                 <div class="relative">
-                    <button id="settings-btn" onclick="toggleSettingsPanel()" class="relative p-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                    <button id="settings-btn" onclick="toggleSettingsPanel()" class="relative p-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
                         <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
                         <span id="settings-attention-dot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full"></span>
                     </button>
@@ -224,9 +290,15 @@
         </header>
 
         <!-- Settings Dropdown Panel -->
-        <div id="settings-panel" class="hidden absolute top-14 right-4 w-72 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-40 notif-slide overflow-hidden">
-            <div class="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30">
-                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1"><i class="fa-solid fa-gear mr-1"></i> Tetapan Pantas</p>
+        <div id="settings-panel" class="hidden absolute top-14 right-4 w-72 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl z-40 notif-slide overflow-hidden">
+            <div class="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30 flex items-center justify-between">
+                <div class="min-w-0">
+                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1"><i class="fa-solid fa-gear mr-1"></i> Tetapan Pantas</p>
+                    <p id="current-user-name-mobile" class="text-sm font-semibold text-slate-700 dark:text-slate-200 px-1 mt-0.5 truncate">-</p>
+                </div>
+                <button onclick="doLogout()" title="Log Keluar" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors flex-shrink-0">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
             </div>
             <div class="p-2">
                 <button id="install-btn-settings" onclick="triggerInstall()" class="hidden items-center gap-3 w-full p-2.5 text-sm text-eng-blue dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors font-medium">
@@ -263,7 +335,7 @@
         </div>
 
         <!-- Notification Panel (Dropdown) -->
-        <div id="notif-panel" class="hidden absolute top-14 right-0 md:right-4 w-full md:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-40 flex flex-col max-h-[75vh]">
+        <div id="notif-panel" class="hidden absolute top-14 right-0 md:right-4 w-full md:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl z-40 flex flex-col max-h-[75vh]">
             <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-bell text-eng-blue"></i>
@@ -271,15 +343,15 @@
                     <span id="notif-count-badge" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="markAllRead()" class="text-xs text-blue-500 hover:text-blue-700 font-medium px-2 py-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors">Tandai Semua Baca</button>
-                    <button onclick="clearAllNotifs()" class="text-xs text-slate-400 hover:text-red-500 font-medium px-2 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors">Padam Semua</button>
+                    <button onclick="markAllRead()" class="text-xs text-blue-500 hover:text-blue-700 font-medium px-2.5 py-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors">Tandai Semua Baca</button>
+                    <button onclick="clearAllNotifs()" class="text-xs text-slate-400 hover:text-red-500 font-medium px-2.5 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors">Padam Semua</button>
                 </div>
             </div>
             <div class="flex gap-1 p-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30">
-                <button onclick="filterNotifs('all')" id="tab-all" class="notif-tab active text-xs px-3 py-1.5 rounded-md font-medium transition-colors bg-eng-blue text-white">Semua</button>
-                <button onclick="filterNotifs('operation')" id="tab-operation" class="notif-tab text-xs px-3 py-1.5 rounded-md font-medium transition-colors text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">Operation</button>
-                <button onclick="filterNotifs('claim')" id="tab-claim" class="notif-tab text-xs px-3 py-1.5 rounded-md font-medium transition-colors text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">Claim</button>
-                <button onclick="filterNotifs('lod')" id="tab-lod" class="notif-tab text-xs px-3 py-1.5 rounded-md font-medium transition-colors text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">LOD</button>
+                <button onclick="filterNotifs('all')" id="tab-all" class="notif-tab active text-xs px-3 py-1.5 rounded-full font-medium transition-colors bg-eng-blue text-white">Semua</button>
+                <button onclick="filterNotifs('operation')" id="tab-operation" class="notif-tab text-xs px-3 py-1.5 rounded-full font-medium transition-colors text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">Operation</button>
+                <button onclick="filterNotifs('claim')" id="tab-claim" class="notif-tab text-xs px-3 py-1.5 rounded-full font-medium transition-colors text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">Claim</button>
+                <button onclick="filterNotifs('lod')" id="tab-lod" class="notif-tab text-xs px-3 py-1.5 rounded-full font-medium transition-colors text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">LOD</button>
             </div>
             <div id="notif-list" class="overflow-y-auto flex-1">
                 <div class="p-8 text-center text-slate-400" id="notif-empty">
@@ -291,7 +363,7 @@
 
         <div id="toast-container"></div>
 
-        <div id="ios-install-banner" class="hidden fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-slate-800 dark:bg-slate-700 text-white rounded-xl shadow-2xl p-4 z-40 notif-slide">
+        <div id="ios-install-banner" class="hidden fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-slate-800 dark:bg-slate-700 text-white rounded-2xl shadow-2xl p-4 z-40 notif-slide">
             <div class="flex items-start gap-3">
                 <div class="bg-white p-1.5 rounded-lg flex-shrink-0"><img src="https://lh3.googleusercontent.com/d/1UNatuJ8TQ5I7ab4qUqmblWzSSMpHlZps" alt="VoltTrack Icon" class="w-6 h-6 object-contain"></div>
                 <div class="flex-1">
@@ -311,18 +383,20 @@
     <nav class="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex justify-around p-2 pb-safe z-30 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] force-mobile-show" id="mobile-nav"></nav>
 
     <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-xl shadow-2xl flex flex-col max-h-[90vh] fade-in">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] fade-in">
             <div class="flex justify-between items-center p-5 border-b border-slate-200 dark:border-slate-700">
                 <h2 id="modal-title" class="font-bold text-xl text-slate-800 dark:text-white">Borang</h2>
                 <button id="modal-close" class="text-slate-500 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div class="p-5 overflow-y-auto flex-1" id="modal-body"></div>
-            <div class="p-5 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-b-xl">
-                <button id="modal-cancel" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-600">Batal</button>
-                <button id="modal-save" class="px-6 py-2 text-sm font-medium text-white bg-eng-blue rounded-lg hover:bg-blue-700 shadow-md shadow-blue-500/30">Simpan Data</button>
+            <div class="p-5 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-b-2xl">
+                <button id="modal-cancel" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-full hover:bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-600">Batal</button>
+                <button id="modal-save" class="px-6 py-2 text-sm font-medium text-white bg-eng-blue rounded-full hover:bg-blue-700 shadow-md shadow-blue-500/30">Simpan Data</button>
             </div>
         </div>
     </div>
+
+    </div><!-- /#app-shell -->
 
     <script>
     // ==========================================
@@ -353,16 +427,117 @@
     // ==========================================
     // INTEGRASI DATABASE (GOOGLE APPS SCRIPT) & ONESIGNAL
     // ==========================================
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJD34k6dzYQ8JUAgxwgDQ96QzrDOCn09IuhLhltKWrLmjP2GJcp777z4HVmdIWFi7urA/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6jCk8kQud2kpOPw-sQh8bzmWWz7Wb7swmF1p0GOu0T3uDzQCH5q6L7EE1_2KI8xeGpQ/exec";
     const ONESIGNAL_APP_ID = "cf955f91-6073-449f-a745-181c7a7dc4f9";
+
+    // ==========================================
+    // SESI LOGIN & KAWALAN AKSES (ROLE-BASED)
+    // ==========================================
+    // Semua role BOLEH TENGOK semua 4 modul (dashboard tetap gabungan semua).
+    // Tapi hanya role yang disenaraikan boleh EDIT/TAMBAH rekod dalam modul tu.
+    // Admin boleh edit semua modul.
+    const EDIT_ACCESS = {
+        Admin:      ['commercial', 'operation', 'claim', 'lod'],
+        Commercial: ['commercial'],
+        Operation:  ['operation'],
+        Claim:      ['claim'],
+        LOD:        ['lod']
+    };
+    const ROLE_LABELS = { Admin: 'Admin', Commercial: 'Commercial', Operation: 'Operation', Claim: 'Claim', LOD: 'LOD Tracker' };
+    const SESSION_KEY = 'volttrack_session';
+    let session = null; // { token, username, role, full_name, onesignal_external_id, exp }
+
+    const canEdit = (phase) => !!session && (EDIT_ACCESS[session.role] || []).includes(phase);
+
+    const loadSession = () => {
+        try {
+            const raw = localStorage.getItem(SESSION_KEY);
+            if (!raw) return null;
+            const s = JSON.parse(raw);
+            if (!s.exp || Date.now() > s.exp) { localStorage.removeItem(SESSION_KEY); return null; }
+            return s;
+        } catch (e) { return null; }
+    };
+    const saveSession = (s) => {
+        session = s;
+        try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch (e) {}
+    };
+    const clearSession = () => {
+        session = null;
+        try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+    };
+
+    const showApp = () => {
+        document.getElementById('login-screen').classList.add('hidden');
+        const shell = document.getElementById('app-shell');
+        shell.classList.remove('hidden');
+        shell.classList.add('flex');
+        const label = `${session.full_name || session.username} (${ROLE_LABELS[session.role] || session.role})`;
+        const nameEl = document.getElementById('current-user-name');
+        const nameElMobile = document.getElementById('current-user-name-mobile');
+        if (nameEl) nameEl.textContent = label;
+        if (nameElMobile) nameElMobile.textContent = label;
+
+        const roleLabelEl = document.getElementById('role-badge-label');
+        if (roleLabelEl) roleLabelEl.textContent = ROLE_LABELS[session.role] || session.role;
+    };
+
+    const doLogin = async (username, password) => {
+        const loginBtn = document.getElementById('login-submit-btn');
+        const errEl = document.getElementById('login-error');
+        errEl.classList.add('hidden');
+        const originalBtnHTML = loginBtn.innerHTML;
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Sedang log masuk...`;
+        try {
+            const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username, password }) });
+            const result = await res.json();
+            if (result.status === 'success') {
+                saveSession({
+                    token: result.token,
+                    username: result.username,
+                    role: result.role,
+                    full_name: result.full_name,
+                    onesignal_external_id: result.onesignal_external_id,
+                    exp: Date.now() + (11.5 * 60 * 60 * 1000) // hint client sahaja; server sahkan expiry token sendiri
+                });
+                bootApp();
+            } else {
+                errEl.textContent = result.message || 'Log masuk gagal. Sila cuba lagi.';
+                errEl.classList.remove('hidden');
+            }
+        } catch (e) {
+            errEl.textContent = 'Ralat sambungan ke server. Sila cuba lagi.';
+            errEl.classList.remove('hidden');
+        } finally {
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = originalBtnHTML;
+        }
+    };
+
+    const doLogout = () => {
+        try { if (window.OneSignal) OneSignal.logout(); } catch (e) {}
+        clearSession();
+        document.getElementById('app-shell').classList.add('hidden');
+        document.getElementById('app-shell').classList.remove('flex');
+        document.getElementById('login-screen').classList.remove('hidden');
+        const pwEl = document.getElementById('login-password');
+        if (pwEl) pwEl.value = '';
+    };
 
     let projects = [];
 
     const fetchProjectsFromDB = async (isSilent = false) => {
         try {
             if (!isSilent) showToast('Sedang memuat turun data dari Database...', 'info');
-            const response = await fetch(APPS_SCRIPT_URL);
+            const response = await fetch(`${APPS_SCRIPT_URL}?token=${encodeURIComponent(session?.token || '')}`);
             const data = await response.json();
+
+            if (data && data.error === 'unauthorized') {
+                showToast('Sesi tamat tempoh. Sila log masuk semula.', 'warning');
+                doLogout();
+                return;
+            }
 
             if (data && !data.error) {
                 projects = data;
@@ -664,7 +839,7 @@
                             <div class="flex items-center justify-between mt-2">
                                 <span class="text-[10px] text-slate-400 dark:text-slate-500">${n.timestamp}</span>
                                 <button onclick="event.stopPropagation(); handleNotifAction('${n.id}')"
-                                        class="text-xs font-semibold text-eng-blue dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md">
+                                        class="text-xs font-semibold text-eng-blue dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-900/20 px-2.5 py-0.5 rounded-full">
                                     ${n.actionLabel} →
                                 </button>
                             </div>
@@ -701,7 +876,7 @@
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.id = toastId;
-        toast.className = `toast notif-slide rounded-xl shadow-2xl text-white text-sm overflow-hidden border ${colors[type] || colors.info}`;
+        toast.className = `toast notif-slide rounded-2xl shadow-2xl text-white text-sm overflow-hidden border ${colors[type] || colors.info}`;
         toast.innerHTML = `
             <div class="flex items-start gap-3 p-3.5">
                 <i class="fa-solid ${icons[type] || icons.info} text-base mt-0.5 flex-shrink-0"></i>
@@ -821,13 +996,13 @@
             const badge = navCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">${navCount}</span>` : '';
             const mBadge = navCount > 0 ? `<span class="absolute top-0 right-1 bg-red-500 text-white text-[9px] font-bold px-1 rounded-full">${navCount}</span>` : '';
             dHTML += `
-                <button onclick="switchView('${v.id}')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-eng-blue text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}">
+                <button onclick="switchView('${v.id}')" class="w-full flex items-center gap-3 px-4 py-3 rounded-full transition-all duration-200 ${isActive ? 'bg-eng-dark text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}">
                     <i class="fa-solid ${v.icon} w-5 text-center"></i>
                     <span class="font-medium">${v.title}</span>
                     ${badge}
                 </button>`;
             mHTML += `
-                <button onclick="switchView('${v.id}')" class="flex flex-col items-center justify-center w-full p-2 relative ${isActive ? 'text-eng-blue dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}">
+                <button onclick="switchView('${v.id}')" class="flex flex-col items-center justify-center w-full p-2 relative ${isActive ? 'text-eng-dark dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}">
                     <i class="fa-solid ${v.icon} text-lg mb-1 ${isActive ? 'scale-110 transition-transform' : ''}"></i>
                     <span class="text-[10px] font-medium leading-none">${v.title.replace(/[0-9].\s/, '')}</span>
                     ${mBadge}
@@ -882,17 +1057,17 @@
                     <p class="text-sm text-slate-500">Ringkasan status projek dan kesihatan kewangan</p>
                 </div>
                 ${unread > 0 ? `
-                <button onclick="toggleNotifPanel()" class="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+                <button onclick="toggleNotifPanel()" class="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-2 rounded-2xl text-sm font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
                     <i class="fa-solid fa-bell animate-bounce"></i>
                     <span>${unread} Notifikasi Belum Dibaca</span>
                 </button>` : ''}
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                ${createKPICard('Jumlah Projek', totalProj, 'fa-folder-open', 'border-blue-500')}
-                ${createKPICard('Nilai Lulus', formatRM(revTotal), 'fa-money-bill-trend-up', 'border-emerald-500')}
-                ${createKPICard('Operasi Aktif', activeOps.length, 'fa-helmet-safety', 'border-amber-500')}
-                ${createKPICard('Kes LOD (Tertunggak)', outstanding.length, 'fa-gavel', 'border-red-500')}
+                ${createKPICard('Jumlah Projek', totalProj, 'fa-folder-open', 'blue')}
+                ${createKPICard('Nilai Lulus', formatRM(revTotal), 'fa-money-bill-trend-up', 'emerald')}
+                ${createKPICard('Operasi Aktif', activeOps.length, 'fa-helmet-safety', 'amber')}
+                ${createKPICard('Kes LOD (Tertunggak)', outstanding.length, 'fa-gavel', 'red')}
             </div>
 
             ${(urgentNotifs.length > 0 || warningNotifs.length > 0) ? `
@@ -906,7 +1081,7 @@
                         const bgMap = { urgent: 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800', warning: 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800' };
                         const iconMap = { urgent: 'text-red-500', warning: 'text-amber-500' };
                         return `
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl border ${bgMap[meta.priority] || 'bg-slate-50 border-slate-200'} cursor-pointer hover:brightness-95 transition-all"
+                        <div class="flex items-start gap-3 p-3.5 rounded-2xl border ${bgMap[meta.priority] || 'bg-slate-50 border-slate-200'} cursor-pointer hover:brightness-95 transition-all"
                              onclick="handleNotifAction('${n.id}')">
                             <i class="fa-solid ${meta.icon} ${iconMap[meta.priority] || 'text-slate-500'} mt-0.5 w-4 text-center flex-shrink-0"></i>
                             <div class="min-w-0">
@@ -918,23 +1093,23 @@
                     }).join('')}
                 </div>
             </div>` : `
-            <div class="mb-6 p-4 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-3">
+            <div class="mb-6 p-4 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800 rounded-2xl flex items-center gap-3">
                 <i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i>
                 <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Semua projek dalam keadaan baik. Tiada tindakan segera diperlukan.</p>
             </div>`}
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                     <h3 class="font-bold mb-4 text-sm text-slate-600 dark:text-slate-400 uppercase tracking-wider">Status Quotation</h3>
                     <div class="h-64"><canvas id="chartQuotation"></canvas></div>
                 </div>
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                     <h3 class="font-bold mb-4 text-sm text-slate-600 dark:text-slate-400 uppercase tracking-wider">Kesihatan Pembayaran</h3>
                     <div class="h-64"><canvas id="chartFinance"></canvas></div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mb-6">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mb-6">
                 <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
                     <h3 class="font-bold text-sm text-slate-600 dark:text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-bell mr-2"></i>Ringkasan Notifikasi Aktif</h3>
                     <button onclick="toggleNotifPanel()" class="text-xs text-blue-500 hover:underline">Lihat Semua →</button>
@@ -944,10 +1119,10 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
                     <h3 class="font-bold text-sm text-slate-600 dark:text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-users mr-2"></i>Ringkasan Klien</h3>
-                    <span class="text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400 px-2 py-1 rounded-md">${clientArray.length} Klien</span>
+                    <span class="text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400 px-2.5 py-1 rounded-full">${clientArray.length} Klien</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left whitespace-nowrap">
@@ -996,7 +1171,7 @@
                 const catNotifs = notifications.filter(n => NOTIF_TYPES[n.type]?.category === cat.key);
                 const unreadCat = catNotifs.filter(n => !n.read).length;
                 return `
-                <div class="p-4 rounded-xl border ${cat.border} ${cat.bg}">
+                <div class="p-4 rounded-2xl border ${cat.border} ${cat.bg}">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid ${cat.icon} ${cat.color}"></i>
@@ -1018,14 +1193,20 @@
         </div>`;
     };
 
-    const createKPICard = (title, value, icon, borderClass) => `
-        <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 border-t-4 ${borderClass}">
+    const KPI_COLOR_MAP = {
+        blue:    'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+        emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+        amber:   'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
+        red:     'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+    };
+    const createKPICard = (title, value, icon, colorKey) => `
+        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">${title}</p>
                     <h4 class="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">${value}</h4>
                 </div>
-                <div class="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-slate-400"><i class="fa-solid ${icon}"></i></div>
+                <div class="w-10 h-10 flex items-center justify-center rounded-full ${KPI_COLOR_MAP[colorKey] || KPI_COLOR_MAP.blue}"><i class="fa-solid ${icon}"></i></div>
             </div>
         </div>`;
 
@@ -1069,7 +1250,8 @@
     // ==========================================
     const renderTable = (phase, container) => {
         let data = [], headers = [], rowBuilder = null, phaseTitle = '';
-        const canAdd = phase === 'commercial';
+        const canAdd = phase === 'commercial' && canEdit('commercial');
+        const canEditThisPhase = canEdit(phase);
 
         if (phase === 'commercial') {
             phaseTitle = "Fasa 1: Commercial / Quotation";
@@ -1097,7 +1279,7 @@
                 <td class="px-4 py-3">${p.date_start_job || '<span class="text-amber-500 text-xs font-medium">⚠ Belum Set</span>'}</td>
                 <td class="px-4 py-3">${p.gwr_submitted === 'Yes' ? `<span class="text-emerald-600 font-semibold"><i class="fa-solid fa-check mr-1"></i>${p.gwr_date}</span>` : '<span class="text-slate-400 text-xs">Belum</span>'}</td>
                 <td class="px-4 py-3">${p.full_report_submitted === 'Yes' ? `<span class="text-emerald-600 font-semibold"><i class="fa-solid fa-check mr-1"></i>${p.full_report_date}</span>` : '<span class="text-slate-400 text-xs">Belum</span>'}</td>
-                <td class="px-4 py-3"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-md dark:bg-blue-900/30 dark:text-blue-300 font-medium">${p.status_job || 'Pending'}</span></td>`;
+                <td class="px-4 py-3"><span class="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-full dark:bg-blue-900/30 dark:text-blue-300 font-medium">${p.status_job || 'Pending'}</span></td>`;
             };
         } else if (phase === 'claim') {
             phaseTitle = "Fasa 3: Claim / Kewangan";
@@ -1126,12 +1308,12 @@
                 <td class="px-4 py-3 font-medium">${formatRM(p.quotation_amount)}</td>
                 <td class="px-4 py-3">${p.lod_reminder_date || `<span class="text-amber-500 text-xs">Sasaran: ${p.lod_reminder_sent || '-'}</span>`}</td>
                 <td class="px-4 py-3">${formatStatusBadge(p.ctos_action || 'Pending')}</td>
-                <td class="px-4 py-3"><span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-md dark:bg-amber-900/30 dark:text-amber-300 font-medium uppercase">${p.case_status || 'Open'}</span></td>`;
+                <td class="px-4 py-3"><span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full dark:bg-amber-900/30 dark:text-amber-300 font-medium uppercase">${p.case_status || 'Open'}</span></td>`;
         }
 
         const phaseNotifs = notifications.filter(n => !n.read && NOTIF_TYPES[n.type]?.category === phase);
         const notifBanner = phaseNotifs.length > 0 ? `
-            <div class="mb-4 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl">
+            <div class="mb-4 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-2xl">
                 <div class="flex items-center justify-between mb-2">
                     <p class="text-sm font-bold text-amber-800 dark:text-amber-300"><i class="fa-solid fa-bell mr-2"></i>${phaseNotifs.length} Notifikasi Memerlukan Perhatian</p>
                     <button onclick="filterNotifs('${phase}'); toggleNotifPanel()" class="text-xs text-blue-500 hover:underline">Lihat Semua →</button>
@@ -1149,10 +1331,10 @@
         container.innerHTML = `
             <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
                 <h2 class="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">${phaseTitle}</h2>
-                ${canAdd ? `<button onclick="openForm('commercial', null)" class="bg-eng-blue hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm text-sm font-medium transition-colors"><i class="fa-solid fa-plus mr-2"></i>Projek Baru</button>` : ''}
+                ${canAdd ? `<button onclick="openForm('commercial', null)" class="bg-eng-blue hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-sm text-sm font-medium transition-colors"><i class="fa-solid fa-plus mr-2"></i>Projek Baru</button>` : ''}
             </div>
             ${notifBanner}
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left whitespace-nowrap">
                         <thead class="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-900/50 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
@@ -1164,9 +1346,11 @@
                                 <tr class="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                                     ${rowBuilder(p)}
                                     <td class="px-4 py-3">
-                                        <button onclick="openForm('${phase}', '${p.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 dark:bg-blue-900/20 dark:hover:bg-blue-900/50 px-3 py-1.5 rounded-md transition-colors text-xs font-semibold">
+                                        ${canEditThisPhase ? `
+                                        <button onclick="openForm('${phase}', '${p.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 dark:bg-blue-900/20 dark:hover:bg-blue-900/50 px-3 py-1.5 rounded-full transition-colors text-xs font-semibold">
                                             <i class="fa-solid fa-pen-to-square mr-1"></i>Kemaskini
-                                        </button>
+                                        </button>` : `
+                                        <span class="text-slate-400 text-xs italic"><i class="fa-solid fa-eye mr-1"></i>Lihat sahaja</span>`}
                                     </td>
                                 </tr>`).join('')}
                         </tbody>
@@ -1196,6 +1380,10 @@
     // FORM LOGIC
     // ==========================================
     const openForm = (phase, id) => {
+        if (!canEdit(phase)) {
+            showToast('Role kau tiada akses untuk edit modul ini.', 'warning');
+            return;
+        }
         currentEditingId = id;
         const p = id ? projects.find(x => x.id === id) : { id: generateId(), date_request: getToday(), status_quotation: 'Pending' };
         document.getElementById('modal-title').innerText = id ? `Kemaskini: ${id}` : `Daftar Projek Baru`;
@@ -1347,10 +1535,16 @@
         try {
             const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify(p)
+                body: JSON.stringify({ action: 'save', token: session?.token, data: p })
             });
 
             const result = await response.json();
+
+            if (result.status === 'error' && /unauthorized|sesi/i.test(result.message || '')) {
+                showToast('Sesi tamat tempoh. Sila log masuk semula.', 'warning');
+                doLogout();
+                return;
+            }
 
             if (result.status === 'success') {
                 if (projIndex >= 0) projects[projIndex] = p;
@@ -1664,7 +1858,9 @@
        placeholder palsu dibuang, dan try/catch ditambah supaya error tidak
        senyap gagalkan keseluruhan window.onload) ===
        ===================================================================== */
-    window.onload = () => {
+    const bootApp = () => {
+        showApp();
+
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         window.OneSignalDeferred.push(async function (OneSignal) {
             try {
@@ -1678,6 +1874,16 @@
                 });
 
                 console.log('[OneSignal] Init berjaya.');
+
+                // Kaitkan device ini dengan username (external_id) + tag role,
+                // supaya push notification server-side boleh target ikut role
+                // (lihat hantarOneSignalPush di Apps Script).
+                try {
+                    await OneSignal.login(session.onesignal_external_id || session.username);
+                    await OneSignal.User.addTag('role', session.role);
+                } catch (tagErr) {
+                    console.warn('[OneSignal] Gagal set external_id/tag role:', tagErr);
+                }
 
                 OneSignal.User.PushSubscription.addEventListener("change", function (subscription) {
                     if (subscription.current.optedIn) {
@@ -1711,6 +1917,23 @@
                 showToast(urgentFirst.message, 'urgent');
             }
         }, 3000);
+    };
+
+    window.onload = () => {
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value;
+            if (!u || !p) return;
+            doLogin(u, p);
+        });
+
+        session = loadSession();
+        if (session) {
+            bootApp();
+        }
+        // Kalau takde sesi sah, #login-screen memang dah visible by default (lihat HTML) —
+        // takde apa perlu buat, tunggu user isi borang login.
     };
     </script>
 </body>

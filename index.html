@@ -427,7 +427,7 @@
     // ==========================================
     // INTEGRASI DATABASE (GOOGLE APPS SCRIPT) & ONESIGNAL
     // ==========================================
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6jCk8kQud2kpOPw-sQh8bzmWWz7Wb7swmF1p0GOu0T3uDzQCH5q6L7EE1_2KI8xeGpQ/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMTRMeKFSfGairPhD56Ua1rxHivCqUC1MydXw7SRkjwx4JAi7HHN1jedpm6jIT97U3pw/exec";
     const ONESIGNAL_APP_ID = "cf955f91-6073-449f-a745-181c7a7dc4f9";
 
     // ==========================================
@@ -1256,11 +1256,12 @@
         if (phase === 'commercial') {
             phaseTitle = "Fasa 1: Commercial / Quotation";
             data = projects;
-            headers = ['Project ID', 'Syarikat', 'Tarikh Mohon', 'Quotation No', 'Nilai (RM)', 'Status', 'Tindakan'];
+            headers = ['Project ID', 'Syarikat', 'Keterangan Kerja', 'Tarikh Mohon', 'Quotation No', 'Nilai (RM)', 'Status', 'Tindakan'];
             rowBuilder = (p) => `
                 <td class="px-4 py-3 font-semibold text-eng-blue dark:text-blue-400">${p.id}</td>
                 <td class="px-4 py-3">${p.company}</td>
-                <td class="px-4 py-3">${p.date_request}</td>
+                <td class="px-4 py-3 max-w-[220px] truncate text-slate-500 text-xs" title="${(p.job_description || '').replace(/"/g, '&quot;')}">${p.job_description || '-'}</td>
+                <td class="px-4 py-3">${p.date_request || '-'}</td>
                 <td class="px-4 py-3">${p.quotation_no || '-'}</td>
                 <td class="px-4 py-3 font-medium">${formatRM(p.quotation_amount)}</td>
                 <td class="px-4 py-3">${formatStatusBadge(p.status_quotation)}</td>`;
@@ -1421,6 +1422,9 @@
                 ${createGroup('Quotation Amount (RM)', 'f_quotation_amount', 'number', p.quotation_amount)}
                 ${createGroup('Status Quotation', 'f_status_quotation', 'select', p.status_quotation, { options: ['Pending', 'Cancel', 'Approved'] })}
                 ${createGroup('Tarikh Proceed (Jika Approved)', 'f_date_proceed', 'date', p.date_proceed, { hint: '⚡ Jika Approved, notifikasi Operation akan dijana secara automatik.' })}
+            </div>
+            <div class="grid grid-cols-1 gap-x-4">
+                ${createGroup('Keterangan Kerja / Job Description', 'f_job_description', 'textarea', p.job_description)}
             </div>`;
         } else if (phase === 'operation') {
             formHTML = `
@@ -1441,6 +1445,7 @@
                     ${createGroup('GWR Date', 'f_gwr_date', 'date', p.gwr_date)}
                     ${createGroup('Full Report Submitted?', 'f_full_report_submitted', 'select', p.full_report_submitted, { options: ['Yes', 'No'], hint: '⚡ Jika Yes, projek masuk ke fasa Claim.' })}
                     ${createGroup('Full Report Date', 'f_full_report_date', 'date', p.full_report_date)}
+                    ${createGroup('Report PIC', 'f_report_pic', 'text', p.report_pic)}
                 </div>`;
         } else if (phase === 'claim') {
             formHTML = `
@@ -1450,6 +1455,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
                     ${createGroup('Invoice No', 'f_invoice_no', 'text', p.invoice_no)}
                     ${createGroup('Invoice Date', 'f_invoice_date', 'date', p.invoice_date, { hint: '⚡ Tukar tarikh ini untuk auto-kira Follow Up & Due Date.' })}
+                    ${createGroup('PO No (Purchase Order)', 'f_po_no', 'text', p.po_no)}
                     ${createGroup('Presentation Date (Optional)', 'f_presentation_date', 'date', p.presentation_date)}
                     ${createGroup('Payment Status', 'f_payment_status', 'select', p.payment_status || 'Pending', { options: ['Pending', 'Paid', 'Outstanding'], hint: '⚡ Jika Outstanding, notifikasi LOD Tracker dijana.' })}
                 </div>
@@ -1475,7 +1481,7 @@
                     ${createGroup('Legal Action', 'f_legal_action', 'select', p.legal_action, { options: ['Pending', 'Initiated', 'Completed'] })}
                     ${createGroup('Case Status', 'f_case_status', 'select', p.case_status, { options: ['Open', 'KIV', 'Closed'] })}
                 </div>
-                ${createGroup('Remarks / Nota Kes', 'f_remark', 'textarea', p.remark)}`;
+                ${createGroup('Remarks / Nota Kes', 'f_case_remark', 'textarea', p.case_remark)}`;
         }
 
         document.getElementById('modal-body').innerHTML = formHTML;

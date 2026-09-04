@@ -210,8 +210,63 @@
                 class="w-full bg-eng-blue hover:bg-blue-700 text-white font-semibold py-2.5 rounded-full shadow-sm transition-colors text-sm">
                 Log Masuk
             </button>
+            <button type="button" onclick="showForgotPassword()" class="w-full text-center text-xs text-eng-blue dark:text-blue-400 font-medium mt-4 hover:underline">Lupa Password?</button>
             <p class="text-center text-[11px] text-slate-400 mt-5">&copy; 2026 Voltake. Akses terhad kepada staff berdaftar.</p>
         </form>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- LUPA PASSWORD (OTP dihantar ke email berdaftar) -->
+    <!-- ========================================== -->
+    <div id="forgot-password-screen" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+        <div class="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-8">
+            <div class="flex flex-col items-center mb-6">
+                <i class="fa-solid fa-key text-3xl text-eng-blue mb-3"></i>
+                <h1 class="font-bold text-xl text-slate-800 dark:text-white">Lupa Password</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 text-center mt-1">Kod OTP akan dihantar ke email yang berdaftar untuk akaun anda.</p>
+            </div>
+            <div id="forgot-error" class="hidden mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg"></div>
+            <div id="forgot-info" class="hidden mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-sm rounded-lg"></div>
+
+            <!-- Step 1: minta OTP -->
+            <div id="forgot-step-1">
+                <div class="mb-5">
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Username</label>
+                    <input id="forgot-username" type="text" autocomplete="username"
+                        class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-eng-blue text-sm">
+                </div>
+                <button id="forgot-send-btn" type="button" onclick="requestOtp()"
+                    class="w-full bg-eng-blue hover:bg-blue-700 text-white font-semibold py-2.5 rounded-full shadow-sm transition-colors text-sm">
+                    Hantar Kod OTP
+                </button>
+            </div>
+
+            <!-- Step 2: masukkan OTP + password baru -->
+            <div id="forgot-step-2" class="hidden">
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Kod OTP (6 digit)</label>
+                    <input id="forgot-otp" type="text" inputmode="numeric" maxlength="6"
+                        class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-eng-blue text-sm tracking-widest text-center">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Password Baru</label>
+                    <input id="forgot-new-password" type="password" autocomplete="new-password"
+                        class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-eng-blue text-sm">
+                </div>
+                <div class="mb-5">
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Sahkan Password Baru</label>
+                    <input id="forgot-confirm-password" type="password" autocomplete="new-password"
+                        class="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-eng-blue text-sm">
+                </div>
+                <button id="forgot-reset-btn" type="button" onclick="submitOtpReset()"
+                    class="w-full bg-eng-blue hover:bg-blue-700 text-white font-semibold py-2.5 rounded-full shadow-sm transition-colors text-sm">
+                    Tukar Password
+                </button>
+                <button type="button" onclick="requestOtp(true)" class="w-full text-center text-xs text-slate-400 mt-3 hover:underline">Tak dapat kod? Hantar semula</button>
+            </div>
+
+            <button type="button" onclick="backToLoginFromForgot()" class="w-full text-center text-xs text-slate-400 mt-5 hover:underline"><i class="fa-solid fa-arrow-left mr-1"></i>Kembali ke Log Masuk</button>
+        </div>
     </div>
 
     <!-- ========================================== -->
@@ -238,6 +293,9 @@
             </button>
         </div>
         <div class="p-4 border-t border-slate-200 dark:border-slate-700 space-y-1">
+            <button onclick="openUserForm('change_own')" class="flex items-center gap-3 w-full p-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                <i class="fa-solid fa-key w-4 text-center"></i> <span>Tukar Password</span>
+            </button>
             <button id="install-btn-desktop" onclick="triggerInstall()" class="hidden items-center gap-3 w-full p-2 text-sm text-eng-blue dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors font-medium">
                 <i class="fa-solid fa-download w-4 text-center"></i> <span>Pasang sebagai App</span>
             </button>
@@ -301,6 +359,10 @@
                 </button>
             </div>
             <div class="p-2">
+                <button onclick="toggleSettingsPanel(); openUserForm('change_own')" class="flex items-center gap-3 w-full p-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fa-solid fa-key w-4 text-center"></i> <span>Tukar Password</span>
+                </button>
+                <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
                 <button id="install-btn-settings" onclick="triggerInstall()" class="hidden items-center gap-3 w-full p-2.5 text-sm text-eng-blue dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors font-medium">
                     <i class="fa-solid fa-download w-4 text-center"></i> <span>Download App</span>
                 </button>
@@ -544,6 +606,111 @@
         document.getElementById('login-screen').classList.remove('hidden');
         const pwEl = document.getElementById('login-password');
         if (pwEl) pwEl.value = '';
+    };
+
+    // ==========================================
+    // LUPA PASSWORD (OTP ke email berdaftar) — tak perlu token, sebab user
+    // belum boleh login lagi. Panggil action 'forgot_password' &
+    // 'reset_password_with_otp' terus (bukan guna apiCall() sebab tu perlukan
+    // session.token yang takde dalam konteks ni).
+    // ==========================================
+    let forgotUsernameCache = '';
+
+    const showForgotPassword = () => {
+        document.getElementById('login-screen').classList.add('hidden');
+        const scr = document.getElementById('forgot-password-screen');
+        scr.classList.remove('hidden');
+        scr.classList.add('flex');
+        document.getElementById('forgot-step-1').classList.remove('hidden');
+        document.getElementById('forgot-step-2').classList.add('hidden');
+        document.getElementById('forgot-error').classList.add('hidden');
+        document.getElementById('forgot-info').classList.add('hidden');
+        const uEl = document.getElementById('forgot-username');
+        if (uEl) uEl.value = document.getElementById('login-username')?.value || '';
+        ['forgot-otp', 'forgot-new-password', 'forgot-confirm-password'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+    };
+
+    const backToLoginFromForgot = () => {
+        const scr = document.getElementById('forgot-password-screen');
+        scr.classList.add('hidden');
+        scr.classList.remove('flex');
+        document.getElementById('login-screen').classList.remove('hidden');
+    };
+
+    const showForgotMsg = (type, msg) => {
+        const errEl = document.getElementById('forgot-error');
+        const infoEl = document.getElementById('forgot-info');
+        errEl.classList.add('hidden');
+        infoEl.classList.add('hidden');
+        if (type === 'error') { errEl.textContent = msg; errEl.classList.remove('hidden'); }
+        else { infoEl.textContent = msg; infoEl.classList.remove('hidden'); }
+    };
+
+    const requestOtp = async (isResend = false) => {
+        const username = document.getElementById('forgot-username').value.trim();
+        if (!username) { showForgotMsg('error', 'Sila isi username.'); return; }
+        forgotUsernameCache = username;
+
+        const btn = document.getElementById('forgot-send-btn');
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menghantar...`;
+        try {
+            const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'forgot_password', username }) });
+            const result = await res.json();
+            if (result.status === 'success') {
+                showForgotMsg('info', isResend ? 'Kod OTP baru telah dihantar (jika email berdaftar).' : (result.message || 'OTP telah dihantar ke email berdaftar.'));
+                document.getElementById('forgot-step-1').classList.add('hidden');
+                document.getElementById('forgot-step-2').classList.remove('hidden');
+            } else {
+                showForgotMsg('error', result.message || 'Gagal menghantar OTP.');
+            }
+        } catch (e) {
+            showForgotMsg('error', 'Tiada sambungan internet. Sila cuba lagi.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
+    };
+
+    const submitOtpReset = async () => {
+        const otp = document.getElementById('forgot-otp').value.trim();
+        const newPw = document.getElementById('forgot-new-password').value;
+        const confirmPw = document.getElementById('forgot-confirm-password').value;
+        if (!otp) { showForgotMsg('error', 'Sila isi kod OTP.'); return; }
+        if (newPw.length < 6) { showForgotMsg('error', 'Password baru mesti sekurang-kurangnya 6 aksara.'); return; }
+        if (newPw !== confirmPw) { showForgotMsg('error', 'Password baru & sahkan tak sepadan.'); return; }
+
+        const btn = document.getElementById('forgot-reset-btn');
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...`;
+        try {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'reset_password_with_otp', username: forgotUsernameCache, otp, new_password: newPw })
+            });
+            const result = await res.json();
+            if (result.status === 'success') {
+                // Toast biasa ("showToast") tersorok dalam #app-shell yang masih
+                // hidden sebelum login — jadi papar mesej terus kat skrin ni,
+                // baru kembali ke Log Masuk lepas user sempat baca.
+                showForgotMsg('info', '✅ Password berjaya ditukar. Sila log masuk semula.');
+                const loginUserEl = document.getElementById('login-username');
+                if (loginUserEl) loginUserEl.value = forgotUsernameCache;
+                setTimeout(backToLoginFromForgot, 1800);
+            } else {
+                showForgotMsg('error', result.message || 'OTP tidak sah atau telah luput.');
+            }
+        } catch (e) {
+            showForgotMsg('error', 'Tiada sambungan internet. Sila cuba lagi.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
     };
 
     let projects = [];
@@ -1690,7 +1857,8 @@
                             <td class="px-4 py-3 text-right whitespace-nowrap">
                                 <button onclick="openUserForm('edit', '${u.id}')" title="Edit" class="text-blue-500 hover:text-blue-700 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1.5 rounded-full text-xs font-semibold mr-1"><i class="fa-solid fa-pen"></i></button>
                                 <button onclick="openUserForm('reset', '${u.id}')" title="Reset Password" class="text-amber-500 hover:text-amber-700 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1.5 rounded-full text-xs font-semibold mr-1"><i class="fa-solid fa-key"></i></button>
-                                <button onclick="toggleUserActive('${u.id}')" title="${String(u.active).toLowerCase() === 'no' ? 'Aktifkan' : 'Nyahaktifkan'}" class="text-slate-500 hover:text-red-600 bg-slate-100 dark:bg-slate-700 px-2.5 py-1.5 rounded-full text-xs font-semibold"><i class="fa-solid ${String(u.active).toLowerCase() === 'no' ? 'fa-toggle-off' : 'fa-toggle-on'}"></i></button>
+                                <button onclick="toggleUserActive('${u.id}')" title="${String(u.active).toLowerCase() === 'no' ? 'Aktifkan' : 'Nyahaktifkan'}" class="text-slate-500 hover:text-red-600 bg-slate-100 dark:bg-slate-700 px-2.5 py-1.5 rounded-full text-xs font-semibold mr-1"><i class="fa-solid ${String(u.active).toLowerCase() === 'no' ? 'fa-toggle-off' : 'fa-toggle-on'}"></i></button>
+                                <button onclick="openUserForm('delete', '${u.id}')" title="Padam" class="text-red-500 hover:text-red-700 bg-red-50 dark:bg-red-900/20 px-2.5 py-1.5 rounded-full text-xs font-semibold"><i class="fa-solid fa-trash"></i></button>
                             </td>
                         </tr>`).join('')}
                     </tbody>
@@ -1744,6 +1912,32 @@
                     <p class="text-sm text-slate-500">Password baru untuk <b>${u.username}</b>. Biar kosong untuk guna default "Ubah123!" (staff kena tukar lepas login).</p>
                     <div><label class="block text-xs font-semibold text-slate-500 mb-1">Password Baru</label><input id="um_new_password" type="text" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="Ubah123!"></div>
                 </div>`;
+        } else if (mode === 'delete') {
+            if (!u) return;
+            titleEl.textContent = 'Padam Pengguna';
+            bodyEl.innerHTML = `
+                <div class="text-center py-2">
+                    <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-3"></i>
+                    <p class="text-sm text-slate-700 dark:text-slate-200">Padam akaun <b>${u.username}</b>${u.full_name ? ' (' + u.full_name + ')' : ''}?</p>
+                    <p class="text-xs text-slate-400 mt-2">Tindakan ni KEKAL — rekod & akses dia akan hilang terus. Kalau cuma nak sekat akses sementara (cth staff cuti panjang), guna butang "Nyahaktifkan" je, tak perlu padam.</p>
+                </div>`;
+        } else if (mode === 'change_own') {
+            titleEl.textContent = 'Tukar Password Saya';
+            bodyEl.innerHTML = `
+                <div class="space-y-4">
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-1">Password Semasa</label><input id="um_old_password" type="password" autocomplete="current-password" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-1">Password Baru</label><input id="um_new_password_self" type="password" autocomplete="new-password" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-1">Sahkan Password Baru</label><input id="um_new_password_confirm" type="password" autocomplete="new-password" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm"></div>
+                </div>`;
+        }
+
+        const saveBtn = document.getElementById('user-modal-save');
+        if (mode === 'delete') {
+            saveBtn.textContent = 'Padam Pengguna';
+            saveBtn.className = 'px-6 py-2 text-sm font-medium text-white bg-red-600 rounded-full hover:bg-red-700 shadow-md shadow-red-500/30';
+        } else {
+            saveBtn.textContent = mode === 'change_own' ? 'Tukar Password' : 'Simpan';
+            saveBtn.className = 'px-6 py-2 text-sm font-medium text-white bg-eng-blue rounded-full hover:bg-blue-700 shadow-md shadow-blue-500/30';
         }
 
         document.getElementById('user-modal-backdrop').classList.remove('hidden');
@@ -1795,11 +1989,28 @@
                 const newPw = document.getElementById('um_new_password').value.trim();
                 result = await apiCall('reset_user_password', { id: userModalTargetId, new_password: newPw || undefined });
                 if (result.status === 'success') showToast(`✅ Password direset.${result.new_password ? ' Password baru: ' + result.new_password : ''}`, 'success');
+            } else if (userModalMode === 'delete') {
+                result = await apiCall('delete_user', { id: userModalTargetId });
+                if (result.status === 'success') showToast('🗑️ Pengguna dipadam.', 'success');
+            } else if (userModalMode === 'change_own') {
+                const oldPw = document.getElementById('um_old_password').value;
+                const newPw = document.getElementById('um_new_password_self').value;
+                const confirmPw = document.getElementById('um_new_password_confirm').value;
+                if (!oldPw || !newPw) { showToast('Sila isi semua ruangan.', 'warning'); return; }
+                if (newPw.length < 6) { showToast('Password baru mesti sekurang-kurangnya 6 aksara.', 'warning'); return; }
+                if (newPw !== confirmPw) { showToast('Password baru & sahkan tak sepadan.', 'warning'); return; }
+                result = await apiCall('change_password', { old_password: oldPw, new_password: newPw });
+                if (result.status === 'success') showToast('✅ Password anda berjaya ditukar.', 'success');
             }
 
             if (result && result.status === 'success') {
+                // Nota: kena semak mode SEBELUM closeUserModal(), sebab function
+                // tu reset userModalMode balik ke null.
+                const shouldRefreshUsersView = userModalMode !== 'change_own';
                 closeUserModal();
-                switchView('users');
+                // 'change_own' boleh dipanggil dari mana-mana view (bukan cuma
+                // halaman Pengguna) — jangan redirect user pergi ke situ.
+                if (shouldRefreshUsersView) switchView('users');
             } else if (result) {
                 showToast(result.message || 'Ralat ketika menyimpan.', 'urgent');
             }

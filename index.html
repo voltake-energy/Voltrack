@@ -396,6 +396,20 @@
         </div>
     </div>
 
+    <div id="user-modal-backdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[90vh] fade-in">
+            <div class="flex justify-between items-center p-5 border-b border-slate-200 dark:border-slate-700">
+                <h2 id="user-modal-title" class="font-bold text-xl text-slate-800 dark:text-white">Pengguna</h2>
+                <button id="user-modal-close" class="text-slate-500 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto flex-1" id="user-modal-body"></div>
+            <div class="p-5 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-b-2xl">
+                <button id="user-modal-cancel" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-full hover:bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-600">Batal</button>
+                <button id="user-modal-save" class="px-6 py-2 text-sm font-medium text-white bg-eng-blue rounded-full hover:bg-blue-700 shadow-md shadow-blue-500/30">Simpan</button>
+            </div>
+        </div>
+    </div>
+
     </div><!-- /#app-shell -->
 
     <script>
@@ -427,7 +441,7 @@
     // ==========================================
     // INTEGRASI DATABASE (GOOGLE APPS SCRIPT) & ONESIGNAL
     // ==========================================
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMTRMeKFSfGairPhD56Ua1rxHivCqUC1MydXw7SRkjwx4JAi7HHN1jedpm6jIT97U3pw/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWV5sU-Au9PtRwbFm8f-zjmFDEDf491D92B9RsZdBB83YgmFHHKlhvkNsqY2FS1XYM8A/exec";
     const ONESIGNAL_APP_ID = "cf955f91-6073-449f-a745-181c7a7dc4f9";
 
     // ==========================================
@@ -444,10 +458,14 @@
         LOD:        ['lod']
     };
     const ROLE_LABELS = { Admin: 'Admin', Commercial: 'Commercial', Operation: 'Operation', Claim: 'Claim', LOD: 'LOD Tracker' };
+    const VALID_ROLES = ['Admin', 'Commercial', 'Operation', 'Claim', 'LOD'];
     const SESSION_KEY = 'volttrack_session';
-    let session = null; // { token, username, role, full_name, onesignal_external_id, exp }
+    let session = null; // { token, username, roles: [], full_name, onesignal_external_id, exp }
 
-    const canEdit = (phase) => !!session && (EDIT_ACCESS[session.role] || []).includes(phase);
+    // Multi-role: user boleh pegang >1 role serentak. Boleh edit satu modul
+    // kalau MANA-MANA role yang dia pegang benarkan modul tu (union akses).
+    const isAdmin = () => !!session && (session.roles || []).includes('Admin');
+    const canEdit = (phase) => !!session && (session.roles || []).some(r => (EDIT_ACCESS[r] || []).includes(phase));
 
     const loadSession = () => {
         try {
@@ -472,14 +490,17 @@
         const shell = document.getElementById('app-shell');
         shell.classList.remove('hidden');
         shell.classList.add('flex');
-        const label = `${session.full_name || session.username} (${ROLE_LABELS[session.role] || session.role})`;
+        const roleLabelText = (session.roles || []).map(r => ROLE_LABELS[r] || r).join(' / ') || '-';
+        const label = `${session.full_name || session.username} (${roleLabelText})`;
         const nameEl = document.getElementById('current-user-name');
         const nameElMobile = document.getElementById('current-user-name-mobile');
         if (nameEl) nameEl.textContent = label;
         if (nameElMobile) nameElMobile.textContent = label;
 
         const roleLabelEl = document.getElementById('role-badge-label');
-        if (roleLabelEl) roleLabelEl.textContent = ROLE_LABELS[session.role] || session.role;
+        if (roleLabelEl) roleLabelEl.textContent = roleLabelText;
+
+        initNav(); // refresh nav supaya menu "Pengguna" (Admin sahaja) betul lepas login
     };
 
     const doLogin = async (username, password) => {
@@ -496,7 +517,7 @@
                 saveSession({
                     token: result.token,
                     username: result.username,
-                    role: result.role,
+                    roles: result.roles || [],
                     full_name: result.full_name,
                     onesignal_external_id: result.onesignal_external_id,
                     exp: Date.now() + (11.5 * 60 * 60 * 1000) // hint client sahaja; server sahkan expiry token sendiri
@@ -986,11 +1007,15 @@
         return notifications.filter(n => !n.read && NOTIF_TYPES[n.type]?.category === cat).length;
     };
 
+    const USERS_VIEW = { id: 'users', icon: 'fa-users-gear', title: 'Pengguna' };
+
     const initNav = () => {
         const desktopNav = document.getElementById('desktop-nav');
         const mobileNav = document.getElementById('mobile-nav');
+        // "Pengurusan Pengguna" cuma nampak untuk Admin.
+        const visibleViews = isAdmin() ? [...views, USERS_VIEW] : views;
         let dHTML = '', mHTML = '';
-        views.forEach(v => {
+        visibleViews.forEach(v => {
             const isActive = v.id === currentView;
             const navCount = getNavNotifCount(v.id);
             const badge = navCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">${navCount}</span>` : '';
@@ -1010,7 +1035,7 @@
         });
         desktopNav.innerHTML = dHTML;
         mobileNav.innerHTML = mHTML;
-        document.getElementById('breadcrumb').textContent = views.find(v => v.id === currentView)?.title || '';
+        document.getElementById('breadcrumb').textContent = visibleViews.find(v => v.id === currentView)?.title || '';
     };
 
     const switchView = (viewId) => {
@@ -1025,6 +1050,7 @@
         void content.offsetWidth;
         content.classList.add('fade-in');
         if (viewId === 'dashboard') renderDashboard(content);
+        else if (viewId === 'users') renderUserManagement(content);
         else renderTable(viewId, content);
     };
 
@@ -1597,6 +1623,214 @@
     };
 
     // ==========================================
+    // PENGURUSAN PENGGUNA (Admin sahaja) — tambah/kemaskini user & multi-role
+    // terus dari interface, tak perlu buka Apps Script editor lagi.
+    // ==========================================
+    let cachedUsers = [];
+    let userModalMode = null; // 'create' | 'edit' | 'reset'
+    let userModalTargetId = null;
+
+    const apiCall = async (action, extra = {}) => {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action, token: session?.token, ...extra })
+        });
+        const result = await response.json();
+        if (result.status === 'error' && /unauthorized|sesi/i.test(result.message || '')) {
+            showToast('Sesi tamat tempoh. Sila log masuk semula.', 'warning');
+            doLogout();
+        }
+        return result;
+    };
+
+    const renderUserManagement = async (container) => {
+        if (!isAdmin()) {
+            container.innerHTML = `<div class="text-center py-16 text-slate-400"><i class="fa-solid fa-lock text-3xl mb-3"></i><p>Hanya Admin boleh akses Pengurusan Pengguna.</p></div>`;
+            return;
+        }
+        container.innerHTML = `<div class="text-center py-16 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></div>`;
+
+        const result = await apiCall('list_users');
+        if (result.status !== 'success') {
+            container.innerHTML = `<div class="text-center py-16 text-red-400"><i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i><p>${result.message || 'Gagal muat senarai pengguna.'}</p></div>`;
+            return;
+        }
+        cachedUsers = result.users || [];
+
+        const roleBadge = (r) => `<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-eng-b3 text-eng-dark dark:bg-slate-700 dark:text-blue-300 mr-1 mb-1">${ROLE_LABELS[r] || r}</span>`;
+
+        container.innerHTML = `
+            <div class="mb-6 flex justify-between items-end flex-wrap gap-3">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Pengurusan Pengguna</h2>
+                    <p class="text-sm text-slate-500">Tambah staff baru & urus akses role terus dari sini — tak perlu Apps Script editor.</p>
+                </div>
+                <button onclick="openUserForm('create')" class="bg-eng-blue hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-sm text-sm font-medium transition-colors"><i class="fa-solid fa-user-plus mr-2"></i>Tambah Pengguna</button>
+            </div>
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="text-left px-4 py-3">Username</th>
+                            <th class="text-left px-4 py-3">Nama Penuh</th>
+                            <th class="text-left px-4 py-3">Role</th>
+                            <th class="text-left px-4 py-3">Status</th>
+                            <th class="text-left px-4 py-3">Log Masuk Terakhir</th>
+                            <th class="text-right px-4 py-3">Tindakan</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                        ${cachedUsers.map(u => `
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                            <td class="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">${u.username}</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${u.full_name || '-'}</td>
+                            <td class="px-4 py-3">${(u.roles || []).map(roleBadge).join('') || '-'}</td>
+                            <td class="px-4 py-3">${String(u.active).toLowerCase() === 'no' ? '<span class="text-red-500 font-semibold text-xs"><i class="fa-solid fa-circle-xmark mr-1"></i>Tidak Aktif</span>' : '<span class="text-emerald-500 font-semibold text-xs"><i class="fa-solid fa-circle-check mr-1"></i>Aktif</span>'}</td>
+                            <td class="px-4 py-3 text-slate-500 text-xs">${u.last_login_at ? new Date(u.last_login_at).toLocaleString('ms-MY') : 'Belum pernah'}</td>
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <button onclick="openUserForm('edit', '${u.id}')" title="Edit" class="text-blue-500 hover:text-blue-700 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1.5 rounded-full text-xs font-semibold mr-1"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="openUserForm('reset', '${u.id}')" title="Reset Password" class="text-amber-500 hover:text-amber-700 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1.5 rounded-full text-xs font-semibold mr-1"><i class="fa-solid fa-key"></i></button>
+                                <button onclick="toggleUserActive('${u.id}')" title="${String(u.active).toLowerCase() === 'no' ? 'Aktifkan' : 'Nyahaktifkan'}" class="text-slate-500 hover:text-red-600 bg-slate-100 dark:bg-slate-700 px-2.5 py-1.5 rounded-full text-xs font-semibold"><i class="fa-solid ${String(u.active).toLowerCase() === 'no' ? 'fa-toggle-off' : 'fa-toggle-on'}"></i></button>
+                            </td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+    };
+
+    const roleCheckboxGroup = (selectedRoles = []) => `
+        <div class="grid grid-cols-2 gap-2">
+            ${VALID_ROLES.map(r => `
+                <label class="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700">
+                    <input type="checkbox" class="user-role-checkbox w-4 h-4 accent-blue-600" value="${r}" ${selectedRoles.includes(r) ? 'checked' : ''}>
+                    <span class="text-sm font-medium text-slate-700 dark:text-slate-200">${ROLE_LABELS[r] || r}</span>
+                </label>`).join('')}
+        </div>`;
+
+    const openUserForm = (mode, userId = null) => {
+        userModalMode = mode;
+        userModalTargetId = userId;
+        const u = userId ? cachedUsers.find(x => x.id === userId) : null;
+        const titleEl = document.getElementById('user-modal-title');
+        const bodyEl = document.getElementById('user-modal-body');
+
+        if (mode === 'create') {
+            titleEl.textContent = 'Tambah Pengguna Baru';
+            bodyEl.innerHTML = `
+                <div class="space-y-4">
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-1">Username</label><input id="um_username" type="text" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="cth: azman"></div>
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-1">Nama Penuh</label><input id="um_full_name" type="text" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-1">Email (untuk rujukan, tak wajib)</label><input id="um_email" type="email" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-1">Password Sementara (biar kosong = default "Ubah123!")</label><input id="um_password" type="text" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="Ubah123!"></div>
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-2">Role (boleh pilih lebih dari satu)</label>${roleCheckboxGroup([])}</div>
+                    <p class="text-xs text-slate-400"><i class="fa-solid fa-circle-info mr-1"></i>Staff kena tukar password sementara ni lepas login pertama.</p>
+                </div>`;
+        } else if (mode === 'edit') {
+            if (!u) return;
+            titleEl.textContent = `Edit Pengguna — ${u.username}`;
+            bodyEl.innerHTML = `
+                <div class="space-y-4">
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-1">Username</label><input type="text" disabled value="${u.username}" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-xl px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-1">Nama Penuh</label><input id="um_full_name" type="text" value="${u.full_name || ''}" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-1">Email</label><input id="um_email" type="email" value="${u.email || ''}" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-2">Role (boleh pilih lebih dari satu)</label>${roleCheckboxGroup(u.roles || [])}</div>
+                    <label class="flex items-center gap-2 pt-1"><input id="um_active" type="checkbox" class="w-4 h-4 accent-blue-600" ${String(u.active).toLowerCase() !== 'no' ? 'checked' : ''}><span class="text-sm font-medium text-slate-700 dark:text-slate-200">Akaun Aktif</span></label>
+                </div>`;
+        } else if (mode === 'reset') {
+            if (!u) return;
+            titleEl.textContent = `Reset Password — ${u.username}`;
+            bodyEl.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-sm text-slate-500">Password baru untuk <b>${u.username}</b>. Biar kosong untuk guna default "Ubah123!" (staff kena tukar lepas login).</p>
+                    <div><label class="block text-xs font-semibold text-slate-500 mb-1">Password Baru</label><input id="um_new_password" type="text" class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="Ubah123!"></div>
+                </div>`;
+        }
+
+        document.getElementById('user-modal-backdrop').classList.remove('hidden');
+        document.getElementById('user-modal-backdrop').classList.add('flex');
+    };
+
+    const closeUserModal = () => {
+        document.getElementById('user-modal-backdrop').classList.add('hidden');
+        document.getElementById('user-modal-backdrop').classList.remove('flex');
+        userModalMode = null;
+        userModalTargetId = null;
+    };
+
+    const getCheckedRoles = () => Array.from(document.querySelectorAll('.user-role-checkbox:checked')).map(el => el.value);
+
+    const saveUserForm = async () => {
+        const saveBtn = document.getElementById('user-modal-save');
+        const originalHTML = saveBtn.innerHTML;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...`;
+
+        try {
+            let result;
+            if (userModalMode === 'create') {
+                const username = document.getElementById('um_username').value.trim();
+                const roles = getCheckedRoles();
+                if (!username) { showToast('Username diperlukan.', 'warning'); return; }
+                if (roles.length === 0) { showToast('Pilih sekurang-kurangnya satu role.', 'warning'); return; }
+                result = await apiCall('create_user', {
+                    username,
+                    password: document.getElementById('um_password').value.trim() || undefined,
+                    full_name: document.getElementById('um_full_name').value.trim(),
+                    email: document.getElementById('um_email').value.trim(),
+                    roles
+                });
+                if (result.status === 'success') showToast(`✅ Pengguna "${username}" berjaya dicipta.${result.temp_password ? ' Password sementara: ' + result.temp_password : ''}`, 'success');
+            } else if (userModalMode === 'edit') {
+                const roles = getCheckedRoles();
+                if (roles.length === 0) { showToast('Pilih sekurang-kurangnya satu role.', 'warning'); return; }
+                result = await apiCall('update_user', {
+                    id: userModalTargetId,
+                    full_name: document.getElementById('um_full_name').value.trim(),
+                    email: document.getElementById('um_email').value.trim(),
+                    roles,
+                    active: document.getElementById('um_active').checked
+                });
+                if (result.status === 'success') showToast('✅ Pengguna dikemaskini.', 'success');
+            } else if (userModalMode === 'reset') {
+                const newPw = document.getElementById('um_new_password').value.trim();
+                result = await apiCall('reset_user_password', { id: userModalTargetId, new_password: newPw || undefined });
+                if (result.status === 'success') showToast(`✅ Password direset.${result.new_password ? ' Password baru: ' + result.new_password : ''}`, 'success');
+            }
+
+            if (result && result.status === 'success') {
+                closeUserModal();
+                switchView('users');
+            } else if (result) {
+                showToast(result.message || 'Ralat ketika menyimpan.', 'urgent');
+            }
+        } catch (e) {
+            console.error('User save error:', e);
+            showToast('Tiada sambungan internet. Gagal menyimpan.', 'urgent');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalHTML;
+        }
+    };
+
+    const toggleUserActive = async (userId) => {
+        const u = cachedUsers.find(x => x.id === userId);
+        if (!u) return;
+        const result = await apiCall('update_user', {
+            id: u.id,
+            full_name: u.full_name,
+            email: u.email,
+            roles: u.roles,
+            active: String(u.active).toLowerCase() === 'no'
+        });
+        if (result.status === 'success') {
+            showToast(`Pengguna "${u.username}" kini ${String(u.active).toLowerCase() === 'no' ? 'AKTIF' : 'TIDAK AKTIF'}.`, 'info');
+            switchView('users');
+        } else {
+            showToast(result.message || 'Ralat ketika mengemaskini status.', 'urgent');
+        }
+    };
+
+    // ==========================================
     // THEME
     // ==========================================
     const toggleTheme = () => {
@@ -1855,6 +2089,9 @@
     document.getElementById('modal-close').addEventListener('click', closeModal);
     document.getElementById('modal-cancel').addEventListener('click', closeModal);
     document.getElementById('modal-save').addEventListener('click', saveForm);
+    document.getElementById('user-modal-close').addEventListener('click', closeUserModal);
+    document.getElementById('user-modal-cancel').addEventListener('click', closeUserModal);
+    document.getElementById('user-modal-save').addEventListener('click', saveUserForm);
     document.getElementById('theme-toggle-desktop')?.addEventListener('click', toggleTheme);
     document.getElementById('theme-toggle-settings')?.addEventListener('click', toggleTheme);
 
@@ -1881,12 +2118,25 @@
 
                 console.log('[OneSignal] Init berjaya.');
 
-                // Kaitkan device ini dengan username (external_id) + tag role,
-                // supaya push notification server-side boleh target ikut role
-                // (lihat hantarOneSignalPush di Apps Script).
+                // Kaitkan device ini dengan username (external_id) + tag SETIAP
+                // role yang user ni pegang, supaya push notification server-side
+                // boleh target ikut role (lihat hantarOneSignalPush/buildRoleFilters
+                // di Apps Script). Sebab user boleh ada >1 role, kita guna SATU
+                // TAG BERASINGAN untuk setiap role (cth "role_operation"="1"),
+                // bukan satu tag "role" macam dulu (tag cuma boleh pegang 1 value).
                 try {
                     await OneSignal.login(session.onesignal_external_id || session.username);
-                    await OneSignal.User.addTag('role', session.role);
+                    // Buang tag lama versi single-role (kalau device ni pernah
+                    // login sebelum upgrade ke multi-role) supaya tak lekat sisa.
+                    await OneSignal.User.removeTag('role');
+                    for (const r of VALID_ROLES) {
+                        const key = 'role_' + r.toLowerCase();
+                        if ((session.roles || []).includes(r)) {
+                            await OneSignal.User.addTag(key, '1');
+                        } else {
+                            await OneSignal.User.removeTag(key);
+                        }
+                    }
                 } catch (tagErr) {
                     console.warn('[OneSignal] Gagal set external_id/tag role:', tagErr);
                 }
